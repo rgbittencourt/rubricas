@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a3a5c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rubricas">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-152.png">
+<title>Gerador de Rubricas · INOVALAB</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f5f7;--card:#fff;--bd:#e6e7eb;--bd2:#d0d3da;
+  --tx:#1f2330;--ts:#5b5f6e;--tm:#9498a3;
+  --ok:#16a34a;--okb:#f0fdf4;--ok2:#15803d;
+  --navy:#1a3a5c;--navyl:#e8eef5;--navy2:#22487a;
+  --dan:#dc2626;--danb:#fef2f2;--dan2:#b91c1c;
+  --amb:#92660c;--ambb:#fffbeb;
+  --r:12px;--r2:8px;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 4px 12px rgba(0,0,0,.05);
+  --sh2:0 2px 8px rgba(0,0,0,.1),0 8px 24px rgba(0,0,0,.08);
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--tx);font-size:15px;line-height:1.5;min-height:100dvh;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
+button{cursor:pointer;font-family:inherit;-webkit-appearance:none}
+input,select,textarea{-webkit-appearance:none;appearance:none;font-family:inherit}
+
+/* ── Header — padrão INOVALAB ── */
+header{background:var(--card);border-bottom:1.5px solid var(--bd);padding:0 20px;position:sticky;top:calc(0px + var(--safe-top));z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.hdr{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;height:64px;max-width:1040px;margin:0 auto;width:100%}
+.hdr-logo-ifsc{display:flex;align-items:center;flex-shrink:0}
+.hdr-c{text-align:center}
+.hdr-c h1{font-size:17px;font-weight:700;color:var(--navy);letter-spacing:-.3px}
+.hdr-meta{display:flex;align-items:center;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:2px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex-shrink:0}
+.hdr-meta span{font-size:11px;color:var(--ts)}
+.hdr-meta strong{font-size:11px;color:var(--tx)}
+.hdr-meta .sep{color:var(--bd2)}
+.hdr-reload{font-size:11px;color:var(--ok);cursor:pointer;font-weight:700;text-decoration:none}
+.hdr-reload:hover{text-decoration:underline}
+.hdr-ino{background:#15140f;border-radius:10px;padding:4px 8px;height:56px;display:flex;align-items:center;flex-shrink:0}
+.hdr-back{background:none;border:none;color:var(--ts);font-size:20px;padding:4px 8px;border-radius:6px;line-height:1;display:none;cursor:pointer;position:absolute;left:0}
+.hdr-back.vis{display:block}
+.hdr-back:hover{color:var(--navy);background:var(--navyl)}
+.hdr-c{position:relative}
+
+/* ── Views ── */
+main{flex:1;max-width:1040px;margin:0 auto;width:100%;padding:16px 14px calc(20px + var(--safe-bot))}
+.view{display:none;animation:fadeIn .18s ease}.view.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* HOME */
+.home-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:10px;flex-wrap:wrap}
+.home-toolbar h2{font-size:20px;font-weight:700;color:var(--navy)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.rubrica-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.rc{background:var(--card);border:2px solid var(--bd);border-radius:var(--r);padding:18px 18px 14px;box-shadow:var(--sh);transition:border-color .15s,box-shadow .15s,transform .15s;cursor:pointer}
+.rc:hover{border-color:var(--navy);box-shadow:var(--sh2);transform:translateY(-2px)}
+.rc-badge{display:inline-flex;align-items:center;gap:5px;background:var(--navyl);color:var(--navy);border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;margin-bottom:8px}
+.rc-title{font-weight:700;color:var(--navy);font-size:15px;margin-bottom:4px;line-height:1.3}
+.rc-sub{font-size:12px;color:var(--ts);margin-bottom:6px;line-height:1.4}
+.rc-meta{font-size:11px;color:var(--tm);margin-bottom:12px}
+.rc-actions{display:flex;gap:6px;flex-wrap:wrap}
+.empty{text-align:center;padding:60px 20px;color:var(--ts)}
+.empty-icon{font-size:52px;margin-bottom:14px}
+.empty p{font-size:15px;margin-bottom:20px;color:var(--tm)}
+
+/* RUBRICA VIEW */
+.view-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.view-header h2{font-size:18px;font-weight:700;color:var(--navy);flex:1;min-width:0;line-height:1.3}
+
+/* Modo toggle */
+.mode-bar{background:var(--card);border:1.5px solid var(--bd);border-radius:var(--r);padding:10px 14px;margin-bottom:10px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mode-bar>span{font-size:12px;font-weight:700;color:var(--ts);white-space:nowrap;text-transform:uppercase;letter-spacing:.4px}
+.mbtns{display:flex;gap:3px;background:var(--bg);border-radius:8px;padding:2px;flex:1}
+.mbt{flex:1;padding:7px 8px;border-radius:6px;border:none;background:transparent;font-size:12px;font-weight:500;color:var(--ts);cursor:pointer;transition:all .15s;white-space:nowrap;text-align:center}
+.mbt.on{background:var(--navy);color:#fff;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.mode-info{font-size:11px;color:var(--tm);width:100%;padding-top:6px;border-top:1px solid var(--bd);margin-top:2px}
+
+/* Nota card */
+.nota-card{background:var(--card);border:2px solid var(--navy);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;box-shadow:var(--sh2);display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start}
+@media(min-width:580px){.nota-card{grid-template-columns:auto 1fr auto}}
+.nota-lbl{font-size:11px;color:var(--ts);margin-bottom:2px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.nota-big{display:flex;align-items:baseline;gap:5px}
+.nota-n{font-size:50px;font-weight:700;line-height:1;transition:color .3s;font-variant-numeric:tabular-nums}
+.nota-d{font-size:16px;color:var(--ts)}
+.nota-sub{font-size:11px;color:var(--tm);margin-top:4px}
+.bw{height:10px;background:var(--bg);border-radius:99px;overflow:hidden;border:1px solid var(--bd);margin-bottom:4px}
+.bf{height:100%;border-radius:99px;transition:width .4s cubic-bezier(.4,0,.2,1),background .4s;min-width:0}
+.pct-n{font-size:18px;font-weight:700;transition:color .3s;font-variant-numeric:tabular-nums}
+.cst{display:flex;flex-direction:column;gap:5px;min-width:150px;grid-column:1/-1}
+@media(min-width:580px){.cst{grid-column:auto}}
+.csr{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ts)}
+.csd{width:8px;height:8px;border-radius:50%;background:var(--bd2);flex-shrink:0;transition:background .2s}
+.csd.ok{background:var(--ok)}.csd.zer{background:var(--dan)}
+.cssc{margin-left:auto;font-size:11px;background:var(--bg);border-radius:4px;padding:1px 6px;color:var(--tm);white-space:nowrap;font-weight:600}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;background:var(--card);border:1.5px solid var(--bd);border-radius:var(--r);padding:3px;margin-bottom:10px}
+.tab{flex:1;padding:9px 4px;border-radius:8px;border:none;background:transparent;font-size:12px;font-weight:600;color:var(--ts);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:4px}
+.tab.active{background:var(--navy);color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.panel{display:none}.panel.active{display:block}
+
+/* Aplicar */
+.rrow{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.prog{font-size:12px;color:var(--ts);font-weight:600}
+.cr{background:var(--card);border:2px solid var(--bd);border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:border-color .2s;box-shadow:var(--sh)}
+.cr.done{border-color:var(--ok)}.cr.zer{border-color:var(--dan)}
+.crh{display:flex;align-items:flex-start;justify-content:space-between;padding:11px 14px;background:var(--navyl);gap:8px}
+.crn{font-weight:700;font-size:14px;color:var(--navy);flex:1;line-height:1.3}
+.crtags{display:flex;gap:5px;align-items:center;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.ptag{background:var(--card);border:1px solid var(--bd2);color:var(--ts);border-radius:5px;padding:3px 8px;font-size:11px;font-weight:600}
+.wtag{background:var(--navy);color:#fff;border-radius:5px;padding:3px 8px;font-size:11px;font-weight:700}
+.stag{border-radius:5px;padding:3px 8px;font-size:11px;display:none;border:1.5px solid;font-weight:700}
+.stag.ok{background:var(--okb);border-color:var(--ok);color:var(--ok2)}
+.stag.zt{background:var(--danb);border-color:var(--dan);color:var(--dan2)}
+.cr.done .stag,.cr.zer .stag{display:inline}
+.nivs{display:flex;flex-wrap:wrap;gap:8px;padding:11px 14px}
+.nbt{flex:1;min-width:calc(50% - 4px);border:2px solid var(--bd);border-radius:var(--r2);padding:10px 9px;text-align:center;background:var(--card);cursor:pointer;transition:all .15s;user-select:none;touch-action:manipulation}
+@media(min-width:480px){.nbt{min-width:110px}}
+@media(min-width:700px){.nbt{min-width:0}}
+.nbt:hover,.nbt:active{border-color:var(--navy);background:var(--navyl)}
+.nbt.sel{border-color:var(--ok);background:var(--okb)}
+.nbt.sel .nn{color:var(--ok2)}
+.nbt.selz{border-color:var(--dan);background:var(--danb)}
+.nbt.selz .nn{color:var(--dan2)}
+.nn{font-weight:700;font-size:12px;color:var(--navy)}
+.np{font-size:11px;color:var(--ts);margin-top:2px;font-weight:600}
+.nd{font-size:11px;color:var(--tm);margin-top:5px;line-height:1.4;text-align:left}
+.hint{font-size:12px;color:var(--tm);padding:0 14px 11px;font-style:italic}
+
+/* Editor */
+.sc{background:var(--card);border:1.5px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:var(--sh)}
+.sch{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:14px;font-weight:700;color:var(--navy)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.g2{grid-template-columns:1fr}}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:11px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.4px}
+.fg input,.fg select{border:1.5px solid var(--bd2);border-radius:var(--r2);padding:9px 11px;font-size:14px;color:var(--tx);background:var(--card)}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(26,58,92,.1)}
+.li2{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1.5px solid var(--bd);border-radius:var(--r2);margin-bottom:7px;background:var(--bg)}
+.li2 input[type=text]{border:none;background:transparent;font-size:14px;color:var(--tx);flex:1;min-width:0}
+.li2 input[type=text]:focus{outline:none}
+.nin{width:58px;text-align:right;border:1.5px solid var(--bd2);border-radius:6px;padding:4px 6px;background:var(--card);color:var(--tx);font-size:13px}
+.ll{font-size:12px;color:var(--ts);white-space:nowrap;font-weight:600}
+.pb{height:4px;background:var(--bg);border-radius:2px;margin-top:10px}
+.pbf{height:100%;border-radius:2px;transition:width .3s,background .3s}
+.pi{font-size:12px;margin-top:4px;text-align:right;font-weight:600}
+.zinfo{background:var(--bg);border:1.5px solid var(--bd);border-radius:var(--r2);padding:10px 13px;font-size:12px;color:var(--ts);margin-top:8px;line-height:1.5}
+
+/* Preview */
+.ptw{overflow-x:auto;border-radius:var(--r);border:1.5px solid var(--bd);-webkit-overflow-scrolling:touch}
+.pt{width:100%;border-collapse:collapse;font-size:12px;min-width:420px}
+.pt th,.pt td{border:1px solid var(--bd2);padding:8px 10px;vertical-align:top}
+.pt thead th{background:var(--navy);color:#fff;text-align:center;font-weight:700;white-space:nowrap}
+.pt .cc{background:var(--navyl);color:var(--navy);font-weight:700;font-size:12px;min-width:130px}
+.pt .ccp{font-size:10px;color:var(--ts);font-weight:400;margin-top:3px}
+.pt td{color:var(--ts)}.pt tr:nth-child(even) td{background:#f8f9fb}
+.pt .sc2{background:var(--okb);color:var(--ok2);font-weight:700}
+.pt .scz{background:var(--danb);color:var(--dan2);font-weight:700}
+.pt .nd2{color:var(--tm);font-style:italic;font-size:11px}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:200;padding:0}
+@media(min-width:600px){.overlay{align-items:center;padding:16px}}
+.overlay.open{display:flex;animation:fadeIn .18s ease}
+.modal{background:var(--card);border-radius:16px 16px 0 0;width:100%;max-width:700px;max-height:90dvh;overflow-y:auto;padding:24px 20px 28px;box-shadow:0 -4px 40px rgba(0,0,0,.2)}
+@media(min-width:600px){.modal{border-radius:16px;padding:28px 26px 24px}}
+.modal-handle{width:40px;height:4px;background:var(--bd2);border-radius:2px;margin:0 auto 18px;display:block}
+@media(min-width:600px){.modal-handle{display:none}}
+.modal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.modal-h h3{font-size:17px;font-weight:700;color:var(--navy)}
+.modal-x{background:none;border:none;font-size:24px;color:var(--tm);cursor:pointer;line-height:1;padding:2px}
+.tpl-item{border:1.5px solid var(--bd);border-radius:var(--r);padding:14px 15px;margin-bottom:9px;cursor:pointer;transition:border-color .15s,background .15s}
+.tpl-item:hover{border-color:var(--navy);background:var(--navyl)}
+.tpl-title{font-weight:700;color:var(--navy);margin-bottom:3px;font-size:14px}
+.tpl-sub{font-size:12px;color:var(--ts);margin-bottom:7px}
+.tpl-tags{display:flex;gap:5px;flex-wrap:wrap}
+.ttag{background:var(--bg);border:1px solid var(--bd);border-radius:5px;padding:2px 7px;font-size:11px;color:var(--ts)}
+
+/* Botões */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:var(--r2);font-size:13px;font-weight:700;border:1.5px solid var(--bd2);background:var(--card);color:var(--tx);cursor:pointer;transition:all .15s;touch-action:manipulation;white-space:nowrap}
+.btn:hover,.btn:active{background:var(--navyl);border-color:var(--navy);color:var(--navy)}
+.btn-primary{background:var(--navy);color:#fff;border-color:var(--navy)}.btn-primary:hover{background:var(--navy2);border-color:var(--navy2)}
+.btn-ok{background:var(--ok);color:#fff;border-color:var(--ok)}.btn-ok:hover{background:var(--ok2);border-color:var(--ok2)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-da{color:var(--dan);border-color:#fecaca;background:var(--danb)}.btn-da:hover{background:#fee2e2}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ts)}.btn-ghost:hover{background:var(--navyl);color:var(--navy);border-color:var(--bd)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* Toast */
+#toast{position:fixed;bottom:calc(24px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(10px);background:var(--navy);color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:700;box-shadow:var(--sh2);opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:300;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Banners */
+#offline-bar{display:none;background:#1f2330;color:#fff;text-align:center;padding:8px;font-size:12px;font-weight:600}
+#offline-bar.show{display:block}
+#install-banner{display:none;position:fixed;bottom:calc(16px + var(--safe-bot));right:16px;background:var(--navy);color:#fff;border-radius:12px;padding:14px 16px;box-shadow:var(--sh2);max-width:280px;z-index:100}
+#install-banner.show{display:block}
+#install-banner h4{font-size:13px;margin-bottom:4px}
+#install-banner p{font-size:11px;opacity:.8;margin-bottom:10px}
+
+/* Footer — padrão INOVALAB */
+footer{background:var(--card);border-top:1.5px solid var(--bd);text-align:center;padding:28px 16px calc(24px + var(--safe-bot));font-size:13px;color:var(--ts);line-height:1.8}
+footer .fi{font-weight:600;color:var(--tx)}
+footer .fl{font-weight:700;color:var(--tx)}
+footer .ft{font-style:italic;color:#00703C}
+footer a{color:var(--navy)}footer a:hover{text-decoration:underline}
+
+@media print{
+  body *{visibility:hidden}#pz,#pz *{visibility:visible}
+  #pz{position:fixed;inset:0;padding:20px;background:#fff}
+  .pt thead th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pt .cc{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<div id="offline-bar">📵 Offline — o app continua funcionando</div>
+
+<header>
+  <div class="hdr">
+    <!-- Logo INOVALAB — esquerda -->
+    <div class="hdr-ino">
+      <img src="data:image/png;base64,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"
+           alt="INOVALAB – Laboratório de Inovação e Mídias Digitais"
+           height="48" style="display:block">
+    </div>
+    <!-- Centro: título + back + meta -->
+    <div class="hdr-c">
+      <button class="hdr-back" id="btn-back" onclick="goHome()">←</button>
+      <h1>Gerador de Rubricas</h1>
+      <div class="hdr-meta">
+        <span class="dot"></span>
+        <span>Campus Continente</span>
+        <span class="sep">|</span>
+        <strong id="clock">--:--</strong>
+        <span class="sep">|</span>
+        <span class="hdr-reload" onclick="location.reload()">↺ Recarregar</span>
+      </div>
+    </div>
+    <!-- Logo IFSC — direita -->
+    <div class="hdr-logo-ifsc">
+      <img src="data:image/png;base64,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"
+           alt="IFSC – Instituto Federal de Santa Catarina – Campus Florianópolis-Continente"
+           height="48" style="display:block">
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- HOME -->
+<div id="view-home" class="view active">
+  <div class="home-toolbar">
+    <h2>Minhas Rubricas</h2>
+    <div class="btn-row">
+      <button class="btn" onclick="openTemplates()">📋 Usar template</button>
+      <button class="btn btn-primary" onclick="novaRubrica()">＋ Nova rubrica</button>
+    </div>
+  </div>
+  <div id="rubrica-grid" class="rubrica-grid"></div>
+</div>
+
+<!-- RUBRICA -->
+<div id="view-rubrica" class="view">
+  <div class="view-header">
+    <h2 id="rubrica-title">—</h2>
+    <div class="row">
+      <button class="btn btn-sm btn-da" onclick="openOv('ov-del')">🗑 Excluir</button>
+    </div>
+  </div>
+
+  <div class="mode-bar">
+    <span>Modo</span>
+    <div class="mbtns">
+      <button class="mbt on" id="mbt-abs" onclick="setMode('abs')">📊 Pontos absolutos</button>
+      <button class="mbt" id="mbt-pes" onclick="setMode('pes')">⚖️ Pesos %</button>
+    </div>
+    <div class="mode-info" id="mode-info"></div>
+  </div>
+
+  <div class="nota-card">
+    <div>
+      <div class="nota-lbl">Nota simulada</div>
+      <div class="nota-big">
+        <span class="nota-n" id="nota-n">—</span>
+        <span class="nota-d" id="nota-d"></span>
+      </div>
+      <div class="nota-sub" id="nota-sub"></div>
+    </div>
+    <div>
+      <div class="nota-lbl" id="pct-lbl">Aguardando…</div>
+      <div class="bw"><div class="bf" id="bf" style="width:0%"></div></div>
+      <div class="pct-n" id="pct-n"></div>
+    </div>
+    <div class="cst" id="cst"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('aplicar')">▶ Aplicar</button>
+    <button class="tab" onclick="switchTab('editor')">✏️ Editar</button>
+    <button class="tab" onclick="switchTab('preview')">👁 Ver</button>
+  </div>
+
+  <div id="panel-aplicar" class="panel active">
+    <div class="rrow">
+      <button class="btn btn-sm" onclick="resetSels()">↺ Limpar</button>
+      <span class="prog" id="prog"></span>
+    </div>
+    <div id="matrix"></div>
+  </div>
+
+  <div id="panel-editor" class="panel">
+    <div class="sc">
+      <div class="sch">📋 Identificação</div>
+      <div class="g2">
+        <div class="fg" style="grid-column:1/-1"><label>Título</label><input id="e-tit" type="text" oninput="R.titulo=this.value;$('rubrica-title').textContent=this.value||'Nova Rubrica'"></div>
+        <div class="fg"><label>Disciplina / UC</label><input id="e-dis" type="text" oninput="R.disciplina=this.value"></div>
+        <div class="fg"><label>Atividade</label><input id="e-atv" type="text" oninput="R.atividade=this.value"></div>
+        <div class="fg"><label>Turma</label><input id="e-tur" type="text" oninput="R.turma=this.value"></div>
+        <div class="fg"><label>Data</label><input id="e-dat" type="date" oninput="R.data=this.value"></div>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sch">🎯 Critérios <button class="btn btn-sm" onclick="addCrit()">＋ Adicionar</button></div>
+      <div id="clist"></div>
+      <div id="peso-area" style="display:none">
+        <div class="pb"><div class="pbf" id="pbf" style="width:0%"></div></div>
+        <div class="pi" id="pi"></div>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sch">🏆 Níveis <button class="btn btn-sm" onclick="addNiv()">＋ Adicionar</button></div>
+      <div id="nlist"></div>
+      <div class="zinfo">⓪ Nível com <strong>0 pontos</strong> = não realizado (vermelho). Nível sem descritor para um critério não aparece na aplicação daquele critério.</div>
+    </div>
+    <div class="row"><button class="btn btn-ok" onclick="applyEdit()">✓ Aplicar alterações</button></div>
+  </div>
+
+  <div id="panel-preview" class="panel">
+    <div id="pz">
+      <div class="row" style="margin-bottom:10px">
+        <button class="btn btn-sm" onclick="window.print()">🖨 Imprimir / PDF</button>
+      </div>
+      <div class="ptw"><table class="pt" id="pt"></table></div>
+      <div id="pt-leg" style="margin-top:9px;font-size:11px;color:var(--ts);display:flex;gap:10px;flex-wrap:wrap;align-items:center"></div>
+      <div id="pt-form" style="margin-top:7px;font-size:11px;color:var(--tm);padding-top:7px;border-top:1px solid var(--bd)"></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- MODAL TEMPLATES -->
+<div class="overlay" id="ov-tpl">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <div class="modal-h"><h3>📋 Usar template</h3><button class="modal-x" onclick="closeOv('ov-tpl')">×</button></div>
+    <div id="tpl-list"></div>
+  </div>
+</div>
+
+<!-- MODAL DELETE -->
+<div class="overlay" id="ov-del">
+  <div class="modal" style="max-width:400px">
+    <span class="modal-handle"></span>
+    <div class="modal-h"><h3>⚠️ Excluir rubrica?</h3><button class="modal-x" onclick="closeOv('ov-del')">×</button></div>
+    <p style="font-size:14px;color:var(--ts);margin-bottom:20px;line-height:1.5">Esta ação remove a rubrica da sessão atual.</p>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeOv('ov-del')">Cancelar</button>
+      <button class="btn btn-da" onclick="confirmDel()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<div id="install-banner">
+  <h4>📲 Instalar app</h4>
+  <p>Use offline, sem precisar do navegador.</p>
+  <div class="row">
+    <button class="btn btn-ok btn-sm" onclick="installPWA()">Instalar</button>
+    <button class="btn btn-sm" onclick="dismissInstall()">Agora não</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<footer>
+  <div class="fi">Instituto Federal de Santa Catarina</div>
+  <div>Campus Continente · R. Quatorze de Julho, 150 – Coqueiros – Florianópolis – SC – 88075-010</div>
+  <div><a href="mailto:inovalab.cte@ifsc.edu.br">inovalab.cte@ifsc.edu.br</a></div>
+  <div class="fl">INOVALAB – Laboratório de Inovação e Mídias Digitais</div>
+  <div class="ft">Onde ideias se transformam em realidade.</div>
+</footer>
+
+<script>
+// ══════════════════════════════════════════════════
+// UTILITÁRIOS
+// ══════════════════════════════════════════════════
+let kc=0; const nk=()=>`k${++kc}`;
+const $=id=>document.getElementById(id);
+function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):''}
+function toast(m,d=2500){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d)}
+function openOv(id){$(id).classList.add('open')}
+function closeOv(id){$(id).classList.remove('open')}
+(function clk(){$('clock').textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});setTimeout(clk,30000)})();
+
+// ══════════════════════════════════════════════════
+// ESTADO GLOBAL
+// ══════════════════════════════════════════════════
+let DB=[];
+let nextId=1;
+let MODE='abs';
+let sels={};
+let R={};
+
+// ══════════════════════════════════════════════════
+// PERSISTÊNCIA — localStorage
+// Dados ficam salvos entre sessões no mesmo dispositivo
+// ══════════════════════════════════════════════════
+const LS_KEY = 'inovalab-rubricas-v1';
+
+function dbSave() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({ db: DB, nextId }));
+  } catch(e) {
+    console.warn('localStorage indisponível:', e);
+  }
+}
+
+function dbLoad() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (Array.isArray(data.db) && data.db.length > 0) {
+      DB = data.db;
+      nextId = data.nextId || (Math.max(...DB.map(r => r.id)) + 1);
+    }
+  } catch(e) {
+    console.warn('Erro ao carregar dados salvos:', e);
+  }
+}
+
+// ══════════════════════════════════════════════════
+// NORMALIZAÇÃO — GARANTE 10 no max e 0 no min
+// ══════════════════════════════════════════════════
+
+/**
+ * MODO ABSOLUTO
+ * Nota = (soma_obtida / soma_maxima) * 10
+ * soma_maxima = soma dos maxPts de cada critério
+ * → todos no máximo  = nota 10 exata
+ * → todos em 0 pts   = nota 0 exata
+ *
+ * Ao CARREGAR em modo abs: garante que maxPts de cada critério
+ * seja o maior nível disponível que tenha descritor para ele.
+ */
+function somaMaxAbs(){
+  return R.crits.reduce((s,c)=>s+(c.maxPts||0),0);
+}
+
+/**
+ * MODO PERCENTUAL
+ * Nota = (soma(pts_obtido * peso_frac)) / (pts_max_global * soma_pesos_frac) * 10
+ * Onde pts_max_global = maior pts entre todos os níveis
+ * → todos no máximo e pesos somam 100% → nota 10 exata
+ * → todos em 0 pts                     → nota 0 exata
+ *
+ * Ao trocar ABS → PES: peso_i = (maxPts_i / soma_maxPts) * 100
+ * Ao trocar PES → ABS: maxPts_i = pts_max_global * (peso_i / 100) * soma_pesos_frac ... simplificado:
+ *                       mantém maxPts original se existir; senão calcula proporcional
+ */
+function maxPtsGlobal(){
+  return Math.max(...R.nivs.map(n=>n.pts));
+}
+function somaMaxPes(){
+  // pts_max * soma_pesos_frac (pode não ser exatamente 1 se pesos não somam 100)
+  const somaPesosFrac=R.crits.reduce((s,c)=>s+(c.peso/100),0);
+  return maxPtsGlobal()*somaPesosFrac;
+}
+
+/**
+ * Ao mudar de modo: recalcula pesos ↔ maxPts automaticamente
+ * para que a invariante max=10 / min=0 se mantenha
+ */
+function syncModeValues(novoModo){
+  // ── ABS → PES ─────────────────────────────────────────────────
+  // peso_i = (maxPts_i / soma_maxPts) × 100
+  // Garante: soma(peso_i) = 100%, proporcional à importância original
+  //
+  // ── PES → ABS ─────────────────────────────────────────────────
+  // maxPts_i = maxPtsGlobal × (peso_i / maxPeso)  arredondado a 0.5
+  // Garante: critério de maior peso = nível máximo global
+  // ──────────────────────────────────────────────────────────────
+
+  if(novoModo==='pes'){
+    // ABS → PES: proporcional ao maxPts
+    const somaAbs=R.crits.reduce((s,c)=>s+(c.maxPts||0),0);
+    if(somaAbs>0){
+      let acum=0;
+      R.crits.forEach((c,i)=>{
+        if(i===R.crits.length-1){
+          c.peso=Math.round((100-acum)*10)/10;
+        } else {
+          const p=Math.round((c.maxPts/somaAbs)*1000)/10;
+          c.peso=p; acum+=p;
+        }
+      });
+    } else { equalizePesos(); }
+
+  } else {
+    // PES → ABS: proporcional ao peso, escala pelo ptMax global
+    const ptMax=maxPtsGlobal()||3;
+    const maxPeso=Math.max(...R.crits.map(c=>c.peso||0));
+    if(maxPeso>0){
+      R.crits.forEach(c=>{
+        const raw=(c.peso/maxPeso)*ptMax;
+        c.maxPts=Math.max(0.5, Math.round(raw*2)/2);
+      });
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════
+// TEMPLATES REAIS (4 PDFs TEDPRO/TGE)
+// ══════════════════════════════════════════════════
+const TPLS=[
+  // 0 — P2 Recurso Educacional
+  // total abs = 3+3+3+0.5+0.5 = 10 → nota 10 quando todos no máximo ✓
+  {titulo:'P2 — Recurso Educacional',disciplina:'TEDPRO',atividade:'Produção de Recurso Educacional',modo:'abs',
+   nivs:[{n:'Não realizado',p:0},{n:'Insuficiente',p:0.5},{n:'Em desenvolvimento',p:2},{n:'Satisfatório',p:3}],
+   crits:[
+    {n:'Qualidade do recurso',m:3,d:['Não foi possível avaliar ou não segue as recomendações; precisa de muitas melhorias.','','Boa qualidade na maior parte (legibilidade, resolução, áudio, linguagem dialógica), mas precisa de melhorias.','Excelente qualidade: textos legíveis, boa resolução, qualidade de áudio e linguagem dialógica.']},
+    {n:'Aderência ao desafio e ao público-alvo',m:3,d:['Não foi possível avaliar; desafio não apresentado ou recurso sem aderência.','','Desafio apresentado, mas recurso contribui pouco para a solução ou tem baixa aderência ao público-alvo.','Desafio apresentado; recurso contribui para a solução e é aderente ao público-alvo.']},
+    {n:'Relato da elaboração do recurso',m:3,d:['Não foi possível avaliar; relato não apresentado ou sem informações compreensíveis.','','Informações insuficientes para compreender a experiência de elaboração.','Relatou ferramentas e experiência: desafios enfrentados, como superou e se expectativas foram atingidas.']},
+    {n:'Aplicação / Testagem do recurso',m:0.5,d:['Aplicação não relatada ou não foi possível avaliar a aplicabilidade.','Aplicado/testado com público-alvo ou pares; descrição permite entender a dinâmica e o nº de participantes.','','']},
+    {n:'Opinião do público-alvo sobre o recurso',m:0.5,d:['Recurso não aplicado ou sem relato de opinião com evidências.','Opinião relatada com evidências do público-alvo ou pares sobre o recurso.','','']},
+   ]},
+  // 1 — P4 Portfólio
+  // total abs = 1+4+2+1+1+1 = 10 → nota 10 quando todos no máximo ✓
+  {titulo:'P4 — Portfólio / Relato Final',disciplina:'TEDPRO',atividade:'Portfólio de Atividades',modo:'abs',
+   nivs:[{n:'Não realizado',p:0},{n:'Parcial',p:0.5},{n:'Básico',p:1},{n:'Detalhado',p:2},{n:'Completo',p:3},{n:'Excelente',p:4}],
+   crits:[
+    {n:'Sobre o Desafio',m:1,d:['Não fez ou deixou de apresentar MAIS DE UMA: desafio em forma de pergunta, público-alvo, motivações ou busca de informações.','Deixou de apresentar UMA das informações solicitadas.','Apresentou o desafio em forma de pergunta, público-alvo, motivações e relatou claramente como buscou informações.','','','']},
+    {n:'Sobre os recursos elaborados (P1–P4)',m:4,d:['Não fez ou não relatou a produção de cada recurso.','Deixou de apresentar/nomear um ou mais recursos ou de relatar dificuldades, aprendizagens e contribuições.','','','Nomeou todos (P1–P4) e relatou com poucos detalhes sobre dificuldades, aprendizagens e contribuições.','Nomeou e relatou de forma clara e coerente todos os recursos: dificuldades, aprendizagens e contribuições.']},
+    {n:'Sobre a aplicação dos recursos e solução do desafio',m:2,d:['Não apresentou informações sobre aplicação com o público-alvo e/ou não apresentou resultados.','Informações que não permitem identificar se o recurso foi realmente aplicado/testado.','Informações consistentes sobre aplicação com público-alvo e resultados alcançados (ou propostas de ajuste).','','','']},
+    {n:'Sobre as competências adquiridas',m:1,d:['Não preencheu a tabela ou está incompleta e sem parágrafo sobre competências.','Tabela incompleta ou parágrafo sem clareza sobre competências prévias e desenvolvidas.','Tabela completa (competências por recurso + ferramentas) e parágrafo sobre competências prévias e desenvolvidas.','','','']},
+    {n:'Continuidade da pesquisa e aprendizagem',m:1,d:['Não apresentou metodologia de continuidade e/ou não relatou o mais significativo.','Metodologia inadequada ou sem explicação do porquê.','Metodologia adequada com justificativa e relato do que foi mais significativo para a aprendizagem.','','','']},
+    {n:'Transparência no uso de IA',m:1,d:['Declara ter usado, mas não descreve como.','Declara ter usado, mas resposta incompleta ou superficial.','Declara NÃO ter usado; OU declara ter usado e respondeu tudo: ferramentas, para quê, como interagiu e qual foi o resultado.','','','']},
+   ]},
+  // 2 — AF Plano de Aula Híbrida
+  // total abs = 2+1+2+2+2+1 = 10 → nota 10 quando todos no máximo ✓
+  {titulo:'AF — Plano de Aula Híbrida',disciplina:'PEH / CAP / PTE / TGE',atividade:'Avaliação Final Integrada',modo:'abs',
+   nivs:[{n:'Não realizado',p:0},{n:'Parcial',p:0.5},{n:'Satisfatório',p:1},{n:'Pleno',p:2}],
+   crits:[
+    {n:'Coerência das atividades com conteúdo, objetivos e modelo híbrido',m:2,d:['Atividades não coincidem com conteúdo, modelo e objetivos; ou atividade não desenvolvida.','Em vários aspectos não coincidem; embora em algumas partes a coerência seja mantida.','Em algum aspecto não coincidem; mas em maior parte a coerência é mantida.','Há coerência das atividades com o modelo híbrido, o conteúdo e os objetivos da aula.']},
+    {n:'Adequação dos recursos aos objetivos da aula',m:1,d:['Recursos não permitem cumprimento da aula; ou atividade não realizada.','Recursos permitem cumprir apenas parte da aula.','Recursos permitem o cumprimento da aula.','']},
+    {n:'Coerência entre os espaços e o modelo de ensino híbrido',m:2,d:['Espaços não coerentes com o modelo; ou atividade não realizada.','Espaços não apresentam total coerência com o modelo.','','Espaços coerentes com o modelo escolhido.']},
+    {n:'Coerência da mediação pedagógica do professor',m:2,d:['Papel do professor não explicita mediação pedagógica na maioria das atividades; ou não foi explicitado.','','Explicita mediação pedagógica na maioria das atividades do modelo híbrido.','Explicita mediação pedagógica em TODAS as atividades do modelo híbrido.']},
+    {n:'Adequação da ferramenta de gestão do ensino',m:2,d:['Não indicou ferramenta ou não explicou seu uso para gestão da aula.','','Ferramenta indicada sem explicação adequada do uso para gestão da aula.','Ferramenta indicada e explicação do uso é adequada para gestão da aula.']},
+    {n:'Transparência no uso de IA',m:1,d:['Declara ter usado, mas não descreve como.','Declara ter usado, resposta incompleta ou superficial.','Declara NÃO ter usado; OU declara ter usado e respondeu tudo de forma completa e detalhada.','']},
+   ]},
+  // 3 — AF Análise de Ferramenta Digital
+  // total abs = 1+1+3+2+1+1+1 = 10 → nota 10 quando todos no máximo ✓
+  {titulo:'AF — Análise de Ferramenta Digital',disciplina:'TEDPRO / TGE',atividade:'Avaliação Final — Ferramenta Digital',modo:'abs',
+   nivs:[{n:'Não realizado',p:0},{n:'Parcial',p:0.5},{n:'Básico',p:1},{n:'Adequado',p:2},{n:'Excelente',p:3}],
+   crits:[
+    {n:'Adequação ao formato',m:1,d:['Atividade não atendeu ao documento modelo.','','Utilizou corretamente o documento modelo.','','']},
+    {n:'Apresentação da ferramenta',m:1,d:['Não apresenta nome, link, propósito nem descrição.','Informa nome e link, mas propósito e descrição incompletos.','Apresenta todos os itens: nome, link e apresentação completa.','','']},
+    {n:'Relatos individuais de experiência de uso',m:3,d:['Sem relatos para todos os membros, ou extremamente superficiais/copiados.','Relatos superficiais ou inconsistentes; não abordam todos os pontos ou parecem genéricos.','Relato claro de cada integrante, abordando os pontos, mas pode faltar profundidade.','Cada integrante articula como a ferramenta se relaciona com seu desafio.','Relato detalhado, reflexivo e individualizado; teste de funcionalidades, avaliação clara e recomendações úteis.']},
+    {n:'Relação com os desafios individuais',m:2,d:['Sem associação com desafios individuais; inexistente ou totalmente inadequada.','Associação superficial, sem conexão clara com o problema de cada aluno.','','Cada integrante articula claramente como a ferramenta se relaciona com seu desafio.','']},
+    {n:'Indicação de vantagens e desvantagens',m:1,d:['Não indicadas para a maioria, ou informações irrelevantes/copiadas.','Listadas para cada integrante, mas sem ligação clara ao contexto do desafio.','Cada integrante identifica vantagens e desvantagens no contexto do seu desafio.','','']},
+    {n:'Registros visuais da ferramenta',m:1,d:['Não apresenta nenhum registro visual (captura de tela).','','Apresenta capturas de tela importantes que permitem compreender os principais benefícios.','','']},
+    {n:'Transparência no uso de IA',m:1,d:['Grupo não declara uso de IA, ou declara mas não descreve como.','','Grupo declara explicitamente se usou ou não IA. Se usou: descreve como e em quais partes.','','']},
+   ]},
+];
+
+// ══════════════════════════════════════════════════
+// MONTA RUBRICA A PARTIR DE TEMPLATE
+// ══════════════════════════════════════════════════
+function tplToRubrica(t){
+  const id=nextId++;
+  const nivs=t.nivs.map(n=>({k:nk(),nome:n.n,pts:n.p}));
+  const crits=t.crits.map(c=>({k:nk(),nome:c.n,maxPts:c.m,peso:0,_d:c.d}));
+  // pesos derivados dos maxPts (ABS→PES proporcional)
+  const somaM=crits.reduce((s,c)=>s+(c.maxPts||0),0);
+  let acum=0;
+  crits.forEach((c,i)=>{
+    if(i===crits.length-1){c.peso=Math.round((100-acum)*10)/10}
+    else{const p=Math.round((c.maxPts/somaM)*1000)/10;c.peso=p;acum+=p}
+  });
+  const descs={};
+  crits.forEach(c=>nivs.forEach((n,ni)=>{descs[`${c.k}-${n.k}`]=c._d?.[ni]||''}));
+  return{id,titulo:t.titulo,disciplina:t.disciplina,atividade:t.atividade,
+         turma:'',data:'',modo:t.modo||'abs',crits,nivs,descs,
+         criado:new Date().toISOString()};
+}
+
+// ══════════════════════════════════════════════════
+// HOME
+// ══════════════════════════════════════════════════
+function renderHome(){
+  const g=$('rubrica-grid');
+  if(!DB.length){
+    g.innerHTML=`<div class="empty">
+      <div class="empty-icon">📐</div>
+      <p>Nenhuma rubrica ainda.<br>Crie uma do zero ou use um dos templates prontos.</p>
+      <div class="row" style="justify-content:center;gap:10px">
+        <button class="btn" onclick="openTemplates()">📋 Usar template</button>
+        <button class="btn btn-primary" onclick="novaRubrica()">＋ Nova rubrica</button>
+      </div>
+    </div>`;return;
+  }
+  g.innerHTML=DB.map(r=>{
+    const smx=r.crits.reduce((s,c)=>s+(c.maxPts||0),0);
+    const modoBadge=r.modo==='abs'?`Abs · máx ${smx} pts`:`Pesos · ${r.crits.length} critérios`;
+    return`<div class="rc" onclick="abrirRubrica(${r.id})">
+      <div class="rc-badge">📐 Rubrica</div>
+      <div class="rc-title">${esc(r.titulo)}</div>
+      <div class="rc-sub">${r.disciplina?`<strong>${esc(r.disciplina)}</strong> · `:''}${esc(r.atividade)||'—'}${r.turma?` · ${esc(r.turma)}`:''}</div>
+      <div class="rc-meta">${r.crits.length} critérios · ${r.nivs.length} níveis · ${modoBadge}</div>
+      <div class="rc-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-sm" onclick="abrirRubrica(${r.id})">▶ Aplicar</button>
+        <button class="btn btn-sm" onclick="abrirRubrica(${r.id},true)">✏️ Editar</button>
+        <button class="btn btn-sm" onclick="abrirRubrica(${r.id},false,true)">👁 Ver</button>
+        <button class="btn btn-sm btn-da" onclick="event.stopPropagation();pendingDel=${r.id};openOv('ov-del')">🗑</button>
+      </div>
+    </div>`;}).join('');
+}
+function goHome(){saveCurrentR();$('btn-back').classList.remove('vis');document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));$('view-home').classList.add('active');renderHome()}
+
+// ══════════════════════════════════════════════════
+// TEMPLATES
+// ══════════════════════════════════════════════════
+function openTemplates(){
+  $('tpl-list').innerHTML=TPLS.map((t,i)=>{
+    const smx=t.crits.reduce((s,c)=>s+(c.m||0),0);
+    return`<div class="tpl-item" onclick="usarTemplate(${i})">
+      <div class="tpl-title">${esc(t.titulo)}</div>
+      <div class="tpl-sub">${esc(t.disciplina)} · ${esc(t.atividade)} · <strong>máx ${smx} pts → nota 10</strong></div>
+      <div class="tpl-tags">${t.crits.map(c=>`<span class="ttag">${esc(c.n)} (${c.m}pts)</span>`).join('')}</div>
+    </div>`;}).join('');
+  openOv('ov-tpl');
+}
+function usarTemplate(i){closeOv('ov-tpl');const r=tplToRubrica(TPLS[i]);DB.push(r);dbSave();abrirRubrica(r.id);toast('Template carregado!')}
+
+// ══════════════════════════════════════════════════
+// NOVA RUBRICA EM BRANCO
+// ══════════════════════════════════════════════════
+function novaRubrica(){
+  const id=nextId++;
+  const nivs=[{k:nk(),nome:'Não realizado',pts:0},{k:nk(),nome:'Insuficiente',pts:1},{k:nk(),nome:'Satisfatório',pts:2},{k:nk(),nome:'Excelente',pts:3}];
+  const crits=[{k:nk(),nome:'Critério 1',maxPts:3,peso:50},{k:nk(),nome:'Critério 2',maxPts:3,peso:50}];
+  const descs={};crits.forEach(c=>nivs.forEach(n=>{descs[`${c.k}-${n.k}`]=''}));
+  const r={id,titulo:'Nova Rubrica',disciplina:'',atividade:'',turma:'',data:'',modo:'abs',crits,nivs,descs,criado:new Date().toISOString()};
+  DB.push(r); dbSave(); abrirRubrica(r.id,true);
+}
+
+// ══════════════════════════════════════════════════
+// ABRIR RUBRICA
+// ══════════════════════════════════════════════════
+function abrirRubrica(id,editor=false,preview=false){
+  const r=DB.find(x=>x.id===id);if(!r)return;
+  sels={};MODE=r.modo||'abs';
+  R=JSON.parse(JSON.stringify(r));
+  $('rubrica-title').textContent=r.titulo;
+  updModeUI();
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $('view-rubrica').classList.add('active');
+  $('btn-back').classList.add('vis');
+  if(editor) switchTab('editor');
+  else if(preview) switchTab('preview');
+  else switchTab('aplicar');
+}
+function saveCurrentR(){
+  if(!R||!R.id)return;
+  const idx=DB.findIndex(x=>x.id===R.id);
+  if(idx>=0){ DB[idx]={...DB[idx],...R,modo:MODE}; dbSave(); }
+}
+
+// ══════════════════════════════════════════════════
+// DELETE
+// ══════════════════════════════════════════════════
+let pendingDel=null;
+function confirmDel(){
+  const id=pendingDel||R.id;
+  DB=DB.filter(x=>x.id!==id);
+  pendingDel=null; dbSave(); closeOv('ov-del');
+  toast('Rubrica excluída.');goHome();
+}
+
+// ══════════════════════════════════════════════════
+// MODO — com sincronização automática
+// ══════════════════════════════════════════════════
+function setMode(novoModo){
+  if(novoModo===MODE)return;
+  syncModeValues(novoModo);  // recalcula pesos ↔ maxPts
+  MODE=novoModo;
+  updModeUI();resetSels();renderApply();
+  toast(novoModo==='abs'?'Modo: Pontos absolutos — maxPts recalculados':'Modo: Pesos % — pesos recalculados proporcionalmente');
+}
+function updModeUI(){
+  $('mbt-abs').classList.toggle('on',MODE==='abs');
+  $('mbt-pes').classList.toggle('on',MODE==='pes');
+  $('mode-info').textContent=MODE==='abs'
+    ?'Nota = (pontos obtidos / soma dos máximos) × 10   →   máximo sempre = 10, zero sempre = 0.'
+    :'Nota = Σ(pts × peso%) / (pts_max × 100%)   →   máximo sempre = 10, zero sempre = 0.';
+  const pa=$('peso-area');if(pa)pa.style.display=MODE==='pes'?'block':'none';
+}
+
+// ══════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['aplicar','editor','preview'][i]===t));
+  document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
+  $('panel-'+t).classList.add('active');
+  if(t==='aplicar')renderApply();
+  if(t==='editor')renderEditor();
+  if(t==='preview')renderPreview();
+}
+
+// ══════════════════════════════════════════════════
+// NÍVEIS VISÍVEIS POR CRITÉRIO
+// Nível aparece se tem descritor OU se pts===0 (sempre mostra "não realizado")
+// ══════════════════════════════════════════════════
+function nivsFor(c){
+  return[...R.nivs].sort((a,b)=>b.pts-a.pts).filter(n=>{
+    const txt=(R.descs[`${c.k}-${n.k}`]||'').trim();
+    return txt!==''||n.pts===0;
+  });
+}
+
+// ══════════════════════════════════════════════════
+// RENDERIZA APLICAÇÃO
+// ══════════════════════════════════════════════════
+function renderApply(){
+  $('prog').textContent=`${Object.keys(sels).length} de ${R.crits.length} critérios avaliados`;
+  $('matrix').innerHTML=R.crits.map(c=>{
+    const vn=nivsFor(c);
+    const done=sels[c.k]!==undefined;
+    const sn=done?R.nivs.find(x=>x.k===sels[c.k]):null;
+    const isZ=sn&&sn.pts===0;
+    const badge=MODE==='pes'
+      ?`<span class="wtag">${c.peso}%</span>`
+      :`<span class="ptag">máx ${c.maxPts} pts</span>`;
+    return`<div class="cr${done&&!isZ?' done':''}${isZ?' zer':''}" id="cr-${c.k}">
+      <div class="crh">
+        <span class="crn">${esc(c.nome)}</span>
+        <span class="crtags">${badge}<span class="stag${isZ?' zt':' ok'}">${sn?esc(sn.nome):''}</span></span>
+      </div>
+      <div class="nivs">
+        ${vn.map(n=>{
+          const dk=`${c.k}-${n.k}`,desc=(R.descs[dk]||'').trim(),isSel=sels[c.k]===n.k,isZn=n.pts===0;
+          return`<div class="nbt${isSel?(isZn?' selz':' sel'):''}" id="b-${c.k}-${n.k}" onclick="selNiv('${c.k}','${n.k}')">
+            <div class="nn">${esc(n.nome)}</div>
+            <div class="np">${n.pts} pts</div>
+            ${desc?`<div class="nd">${esc(desc).slice(0,110)}${desc.length>110?'…':''}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+      ${!done?'<div class="hint">↑ Selecione um nível acima</div>':''}
+    </div>`;
+  }).join('');
+  calcNota();
+}
+
+function selNiv(ck,nk2){
+  if(sels[ck]===nk2){delete sels[ck]}else{sels[ck]=nk2}
+  const done=sels[ck]!==undefined;
+  const sn=done?R.nivs.find(x=>x.k===sels[ck]):null;
+  const isZ=sn&&sn.pts===0;
+  const row=$('cr-'+ck);
+  if(row){
+    row.classList.toggle('done',done&&!isZ);
+    row.classList.toggle('zer',!!isZ);
+    const tag=row.querySelector('.stag');
+    if(tag){tag.textContent=sn?sn.nome:'';tag.style.display=done?'inline':'none';tag.className=`stag${isZ?' zt':' ok'}`}
+    row.querySelector('.hint')?.style.setProperty('display',done?'none':'');
+    R.nivs.forEach(n=>{
+      const b=$(`b-${ck}-${n.k}`);if(!b)return;
+      const isSel=sels[ck]===n.k,isZn=n.pts===0;
+      b.className='nbt'+(isSel?(isZn?' selz':' sel'):'');
+      b.querySelector('.nn').style.color=isSel?(isZn?'var(--dan2)':'var(--ok2)'):'';
+    });
+  }
+  $('prog').textContent=`${Object.keys(sels).length} de ${R.crits.length} critérios avaliados`;
+  calcNota();
+}
+function resetSels(){sels={};renderApply();toast('Seleções limpas')}
+
+// ══════════════════════════════════════════════════
+// CÁLCULO DE NOTA — GARANTE 10 no max e 0 no min
+//
+// FÓRMULA UNIFICADA (funciona nos dois modos):
+//
+// ABS: nota = soma(pts_i) / soma(maxPts_i) × 10
+//   → todos no máximo: pts_i==maxPts_i → nota=10 ✓
+//   → todos em zero:   pts_i==0        → nota=0  ✓
+//
+// PES: nota = soma( (pts_i/maxPts_i) × peso_i ) / soma(peso_i) × 10
+//   → nota_crit_i = pts_i/maxPts_i (proporção 0–1 por critério)
+//   → todos no máximo: nota_crit_i=1 → nota=10 ✓
+//   → todos em zero:   nota_crit_i=0 → nota=0  ✓
+//
+// Em ambos os modos maxPts_i = maior pts COM DESCRITOR para aquele critério
+// ══════════════════════════════════════════════════
+function calcNota(){
+  const nSel=Object.keys(sels).length;
+  let nota=null,soma=0,smx=0;
+
+  if(MODE==='abs'){
+    smx=R.crits.reduce((s,c)=>s+(c.maxPts||0),0);
+    R.crits.forEach(c=>{
+      const n=sels[c.k]?R.nivs.find(x=>x.k===sels[c.k]):null;
+      if(n) soma+=n.pts;
+    });
+    if(nSel>0&&smx>0) nota=(soma/smx)*10;
+
+  }else{
+    // proporção por critério: (pts_i/maxPts_i) ponderada pelo peso
+    const somaPesos=R.crits.reduce((s,c)=>s+(c.peso||0),0);
+    if(somaPesos>0){
+      let somaPond=0;
+      R.crits.forEach(c=>{
+        const n=sels[c.k]?R.nivs.find(x=>x.k===sels[c.k]):null;
+        const maxC=c.maxPts||0;
+        const pts=n?n.pts:null;
+        if(pts!==null&&maxC>0) somaPond+=(pts/maxC)*(c.peso/somaPesos);
+        else if(pts===0)       somaPond+=0; // zero explícito
+      });
+      if(nSel>0) nota=somaPond*10;
+    }
+  }
+
+  // clamp seguro (floating point)
+  if(nota!==null) nota=Math.min(10,Math.max(0,nota));
+
+  const pct=nota!=null?nota/10*100:0;
+  const col=nota===null?'var(--tm)':pct<50?'var(--dan)':pct<70?'var(--amb)':'var(--ok)';
+  const bc=pct<50?'var(--dan)':pct<70?'var(--amb)':'var(--ok)';
+
+  if(nota!==null){
+    $('nota-n').textContent=nota.toFixed(2);$('nota-n').style.color=col;
+    $('nota-d').textContent='/ 10,00';
+    $('bf').style.width=pct.toFixed(2)+'%';$('bf').style.background=bc;
+    $('pct-n').textContent=pct.toFixed(0)+'%';$('pct-n').style.color=col;
+    const pend=R.crits.length-nSel;
+    $('pct-lbl').textContent=pend>0?`${pend} critério(s) pendente(s)`:'Todos os critérios avaliados ✓';
+    let sub=MODE==='abs'?`Pontos: ${soma.toFixed(2)} / ${smx.toFixed(2)}`:'';
+    const temZ=R.crits.some(c=>{const n=sels[c.k]?R.nivs.find(x=>x.k===sels[c.k]):null;return n&&n.pts===0});
+    if(temZ){sub+=(sub?' · ':'')+'⚠ Critério(s) com nota zero';$('nota-sub').style.color='var(--dan)'}
+    else $('nota-sub').style.color='var(--tm)';
+    $('nota-sub').textContent=sub;
+  }else{
+    $('nota-n').textContent='—';$('nota-n').style.color='var(--tm)';
+    $('nota-d').textContent='';$('bf').style.width='0%';$('pct-n').textContent='';
+    $('pct-lbl').textContent='Aguardando seleções…';$('nota-sub').textContent='';
+  }
+
+  $('cst').innerHTML=R.crits.map(c=>{
+    const n=sels[c.k]?R.nivs.find(x=>x.k===sels[c.k]):null;
+    const isZ=n&&n.pts===0;
+    const maxC=c.maxPts||0;
+    let sc='';
+    if(n){
+      if(MODE==='abs') sc=`${n.pts} / ${maxC} pts`;
+      else{
+        // contribuição = (pts/maxPts) * peso / somaPesos * 10
+        const somaPesos=R.crits.reduce((s,x)=>s+(x.peso||0),0);
+        const contrib=maxC>0?(n.pts/maxC)*(c.peso/somaPesos)*10:0;
+        sc=`${contrib.toFixed(2)} / ${(c.peso/somaPesos*10).toFixed(2)}`;
+      }
+    }
+    return`<div class="csr">
+      <span class="csd${n?(isZ?' zer':' ok'):''}"></span>
+      <span style="flex:1;line-height:1.3">${esc(c.nome)}</span>
+      ${n?`<span class="cssc">${isZ?'ZERO':sc}</span>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+// EDITOR
+// ══════════════════════════════════════════════════
+function renderEditor(){
+  $('e-tit').value=R.titulo;$('e-dis').value=R.disciplina;
+  $('e-atv').value=R.atividade;$('e-tur').value=R.turma;$('e-dat').value=R.data;
+  $('peso-area').style.display=MODE==='pes'?'block':'none';
+  renderCrits();renderNivs();
+}
+function equalizePesos(){
+  const b=Math.floor(100/R.crits.length),r=100-b*R.crits.length;
+  R.crits.forEach((c,i)=>c.peso=b+(i<r?1:0));
+}
+function addCrit(){
+  const ptMax=maxPtsGlobal()||3;
+  R.crits.push({k:nk(),nome:'Novo critério',maxPts:ptMax,peso:10});
+  equalizePesos();renderCrits();updP();
+}
+function remCrit(k){
+  if(R.crits.length<=1)return;
+  R.crits=R.crits.filter(c=>c.k!==k);
+  for(const d of Object.keys(R.descs))if(d.startsWith(k+'-'))delete R.descs[d];
+  delete sels[k];equalizePesos();renderCrits();updP();
+}
+function renderCrits(){
+  $('clist').innerHTML=R.crits.map(c=>`
+    <div class="li2">
+      <span style="color:var(--tm);font-size:16px">⠿</span>
+      <input type="text" value="${esc(c.nome)}" oninput="uC('${c.k}','nome',this.value)" placeholder="Nome do critério">
+      ${MODE==='abs'
+        ?`<span class="ll">máx</span><input type="number" class="nin" min="0" step="0.5" value="${c.maxPts||0}" oninput="uC('${c.k}','maxPts',+this.value)"><span class="ll">pts</span>`
+        :`<span class="ll">Peso</span><input type="number" class="nin" min="0" max="100" value="${c.peso}" oninput="uC('${c.k}','peso',+this.value)"><span class="ll">%</span>`}
+      <button class="btn btn-sm btn-da" onclick="remCrit('${c.k}')">✕</button>
+    </div>`).join('');
+  updP();
+}
+function uC(k,f,v){const c=R.crits.find(x=>x.k===k);if(c){c[f]=v;if(f==='peso')updP()}}
+function updP(){
+  if(MODE!=='pes'){$('pi').textContent='';return}
+  const tot=R.crits.reduce((s,c)=>s+(+c.peso||0),0);
+  const ok=Math.abs(tot-100)<.1;
+  $('pbf').style.width=Math.min(tot,100)+'%';$('pbf').style.background=ok?'var(--ok)':tot>100?'var(--dan)':'var(--amb)';
+  $('pi').innerHTML=`<span style="color:${ok?'var(--ok)':tot>100?'var(--dan)':'var(--amb)'}">Total: ${tot.toFixed(1)}%${ok?' ✓':' (deve somar 100%)'}</span>`;
+}
+function addNiv(){
+  const p=R.nivs.length?Math.max(...R.nivs.map(n=>n.pts))+1:1;
+  R.nivs.push({k:nk(),nome:'Novo nível',pts:p});renderNivs();
+}
+function remNiv(k){
+  if(R.nivs.length<=1)return;
+  R.nivs=R.nivs.filter(n=>n.k!==k);
+  for(const d of Object.keys(R.descs))if(d.endsWith('-'+k))delete R.descs[d];
+  for(const ck of Object.keys(sels))if(sels[ck]===k)delete sels[ck];
+  renderNivs();
+}
+function renderNivs(){
+  $('nlist').innerHTML=R.nivs.map(n=>`
+    <div class="li2">
+      <span style="color:var(--tm);font-size:16px">⠿</span>
+      <input type="text" value="${esc(n.nome)}" oninput="uN('${n.k}','nome',this.value)" placeholder="Nome do nível">
+      <span class="ll">Pts</span>
+      <input type="number" class="nin" min="0" step="0.5" value="${n.pts}" oninput="uN('${n.k}','pts',+this.value)">
+      <button class="btn btn-sm btn-da" onclick="remNiv('${n.k}')">✕</button>
+    </div>`).join('');
+}
+function uN(k,f,v){const n=R.nivs.find(x=>x.k===k);if(n)n[f]=v}
+function applyEdit(){
+  R.crits.forEach(c=>R.nivs.forEach(n=>{
+    const dk=`${c.k}-${n.k}`;if(!(dk in R.descs))R.descs[dk]='';
+  }));
+  saveCurrentR();sels={};switchTab('aplicar');toast('Alterações aplicadas ✓');
+}
+
+// ══════════════════════════════════════════════════
+// PREVIEW
+// ══════════════════════════════════════════════════
+function renderPreview(){
+  const nivs=[...R.nivs].sort((a,b)=>b.pts-a.pts);
+  const head=`<tr><th style="text-align:left;min-width:130px">Critério${MODE==='abs'?' / Máx':' / Peso'}</th>${nivs.map(n=>`<th>${esc(n.nome)}<br><small style="font-weight:400;opacity:.75">${n.pts} pts</small></th>`).join('')}</tr>`;
+  const rows=R.crits.map(c=>`<tr>
+    <td class="cc">${esc(c.nome)}<div class="ccp">${MODE==='abs'?`máx ${c.maxPts} pts`:`${c.peso}%`}</div></td>
+    ${nivs.map(n=>{
+      const txt=(R.descs[`${c.k}-${n.k}`]||'').trim();
+      const isSel=sels[c.k]===n.k,isZ=n.pts===0&&isSel;
+      return`<td class="${isSel?(isZ?'scz':'sc2'):(txt?'':'nd2')}">${txt?esc(txt):(isSel?'—':'<em>sem descritor</em>')}</td>`;
+    }).join('')}
+  </tr>`).join('');
+  $('pt').innerHTML=`<thead>${head}</thead><tbody>${rows}</tbody>`;
+  const smx=MODE==='abs'?R.crits.reduce((s,c)=>s+(c.maxPts||0),0):null;
+  const ptMax=maxPtsGlobal();
+  $('pt-leg').innerHTML='<strong>Níveis:</strong> '+
+    nivs.map(n=>`<span style="display:inline-flex;align-items:center;gap:4px;margin-right:4px"><span style="background:var(--navy);color:#fff;border-radius:4px;padding:1px 7px;font-size:11px">${n.pts}</span>${esc(n.nome)}</span>`).join('')+
+    (smx!=null?`<span style="color:var(--tm);margin-left:8px">Total máximo: <strong>${smx} pts → nota 10,00</strong></span>`:'');
+  $('pt-form').textContent=MODE==='abs'
+    ?`Nota = (pontos obtidos / ${smx}) × 10   ·   Máximo sempre = 10,00 · Mínimo sempre = 0,00`
+    :`Nota = Σ(pts × peso%) / (${ptMax} × 100%)   ·   Máximo sempre = 10,00 · Mínimo sempre = 0,00`;
+}
+
+// ══════════════════════════════════════════════════
+// OVERLAYS
+// ══════════════════════════════════════════════════
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
+
+// ══════════════════════════════════════════════════
+// PWA
+// ══════════════════════════════════════════════════
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').then(reg=>{
+    reg.addEventListener('updatefound',()=>{
+      reg.installing?.addEventListener('statechange',function(){
+        if(this.state==='installed'&&navigator.serviceWorker.controller)
+          toast('Nova versão disponível — recarregue para atualizar',4000);
+      });
+    });
+  });
+}
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;setTimeout(()=>$('install-banner').classList.add('show'),3500)});
+function installPWA(){if(!deferredPrompt)return;deferredPrompt.prompt();deferredPrompt.userChoice.then(r=>{deferredPrompt=null;$('install-banner').classList.remove('show');if(r.outcome==='accepted')toast('App instalado! 📲')})}
+function dismissInstall(){$('install-banner').classList.remove('show')}
+window.addEventListener('appinstalled',()=>{$('install-banner').classList.remove('show');toast('App instalado! 📲')});
+window.addEventListener('offline',()=>$('offline-bar').classList.add('show'));
+window.addEventListener('online',()=>$('offline-bar').classList.remove('show'));
+
+// ══════════════════════════════════════════════════
+// INIT — carrega dados salvos, depois renderiza
+// ══════════════════════════════════════════════════
+dbLoad();
+renderHome();
+</script>
+</body>
+</html>

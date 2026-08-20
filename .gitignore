@@ -1,0 +1,29 @@
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node (caso alguém adicione ferramentas de build no futuro)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Python (scripts utilitários)
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Build / dist
+dist/
+build/
+
+# Logs
+*.log

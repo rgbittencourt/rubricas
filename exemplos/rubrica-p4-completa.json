@@ -1,0 +1,105 @@
+{
+  "_comentario": "Rubrica P4 completa — Portfólio / Relato Final — TEDPRO/IFSC",
+  "_versao": "1.0",
+  "titulo": "P4 — Portfólio / Relato Final",
+  "disciplina": "TEDPRO",
+  "atividade": "Portfólio de Atividades",
+  "turma": "",
+  "data": "",
+  "modo": "abs",
+  "niveis": [
+    { "nome": "Não realizado", "pontos": 0   },
+    { "nome": "Parcial",       "pontos": 0.5 },
+    { "nome": "Básico",        "pontos": 1   },
+    { "nome": "Detalhado",     "pontos": 2   },
+    { "nome": "Completo",      "pontos": 3   },
+    { "nome": "Excelente",     "pontos": 4   }
+  ],
+  "criterios": [
+    {
+      "nome": "Sobre o Desafio",
+      "maxPontos": 1,
+      "peso": 10,
+      "descritores": [
+        "Não fez ou deixou de apresentar MAIS DE UMA: desafio em forma de pergunta, público-alvo, motivações ou busca de informações.",
+        "Deixou de apresentar UMA das informações solicitadas.",
+        "Apresentou o desafio em forma de pergunta, público-alvo, motivações e relatou claramente como buscou informações.",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "nome": "Sobre os recursos elaborados (P1–P4)",
+      "maxPontos": 4,
+      "peso": 40,
+      "descritores": [
+        "Não fez ou não relatou a produção de cada recurso.",
+        "Deixou de apresentar/nomear um ou mais recursos ou de relatar dificuldades, aprendizagens e contribuições.",
+        "",
+        "",
+        "Nomeou todos (P1–P4) e relatou com poucos detalhes sobre dificuldades, aprendizagens e contribuições.",
+        "Nomeou e relatou de forma clara e coerente todos os recursos: dificuldades, aprendizagens e contribuições."
+      ]
+    },
+    {
+      "nome": "Sobre a aplicação dos recursos e solução do desafio",
+      "maxPontos": 2,
+      "peso": 20,
+      "descritores": [
+        "Não apresentou informações sobre aplicação com o público-alvo e/ou não apresentou resultados.",
+        "Informações que não permitem identificar se o recurso foi realmente aplicado/testado.",
+        "Informações consistentes sobre aplicação com público-alvo e resultados alcançados (ou propostas de ajuste).",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "nome": "Sobre as competências adquiridas",
+      "maxPontos": 1,
+      "peso": 10,
+      "descritores": [
+        "Não preencheu a tabela ou está incompleta e sem parágrafo sobre competências.",
+        "Tabela incompleta ou parágrafo sem clareza sobre competências prévias e desenvolvidas.",
+        "Tabela completa (competências por recurso + ferramentas) e parágrafo sobre competências prévias e desenvolvidas.",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "nome": "Continuidade da pesquisa e aprendizagem",
+      "maxPontos": 1,
+      "peso": 10,
+      "descritores": [
+        "Não apresentou metodologia de continuidade e/ou não relatou o mais significativo.",
+        "Metodologia inadequada ou sem explicação do porquê.",
+        "Metodologia adequada com justificativa e relato do que foi mais significativo para a aprendizagem.",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "nome": "Transparência no uso de IA",
+      "maxPontos": 1,
+      "peso": 10,
+      "descritores": [
+        "Declara ter usado, mas não descreve como.",
+        "Declara ter usado, mas resposta incompleta ou superficial.",
+        "Declara NÃO ter usado; OU declara ter usado e respondeu tudo: ferramentas, para quê, como interagiu e qual foi o resultado.",
+        "",
+        "",
+        ""
+      ]
+    }
+  ],
+  "_meta": {
+    "somaMaxPontos": 10,
+    "notaMaxima": 10.0,
+    "notaMinima": 0.0,
+    "validado": true,
+    "fonte": "Rubrica oficial TEDPRO — IFSC Campus Continente"
+  }
+}
