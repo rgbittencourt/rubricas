@@ -1,198 +1,112 @@
-# Como Adicionar Novos Templates de Rubrica
+# Como adicionar novos templates de rubrica
+
+Templates são rubricas prontas que aparecem em **📋 Usar template**. Eles ficam no array `const TEMPLATES = [...]` no início do `<script>` de `index.html`.
+
+> Para criar uma rubrica sem mexer em código, use **✨ Gerar com IA**, **＋ Nova em branco** ou o próprio editor do app. Template só vale a pena para rubricas que o grupo vai reutilizar sempre.
+
+---
 
 ## Estrutura de um template
 
-No arquivo `index.html`, localize o array `const TPLS = [...]` e adicione um novo objeto:
-
 ```javascript
 {
-  titulo:     'Nome completo da rubrica',
+  id: 't5',                          // único entre os templates
+  titulo: 'Nome completo da rubrica',
   disciplina: 'Código ou nome da UC',
-  atividade:  'Tipo de atividade avaliada',
-  modo:       'abs',   // 'abs' ou 'pes' — modo padrão ao abrir
+  atividade: 'Atividade avaliada',
+  modo: 'abs',                       // 'abs' (pontos) ou 'pct' (pesos %)
 
-  // Níveis de desempenho (colunas da rubrica)
-  // IMPORTANTE: sempre inclua um nível com p: 0 (não realizado)
-  nivs: [
-    { n: 'Não realizado', p: 0   },
-    { n: 'Insuficiente',  p: 1   },
-    { n: 'Satisfatório',  p: 2   },
-    { n: 'Excelente',     p: 3   },
-  ],
-
-  // Critérios de avaliação (linhas da rubrica)
-  crits: [
+  criterios: [
     {
-      n: 'Nome do critério',
-      m: 3,       // maxPts: pontuação máxima para ESTE critério
-      d: [        // descritores: MESMO número que nivs, na mesma ordem
-        'Descritor para Não realizado.',
-        'Descritor para Insuficiente.',
-        'Descritor para Satisfatório.',
-        'Descritor para Excelente.',
+      id: 'c1',                      // único dentro da rubrica
+      nome: 'Nome do critério',
+      peso: 30,                      // % do critério (soma 100 entre todos)
+      niveis: [                      // do menor para o maior
+        { pts: 0, desc: 'Não realizado…' },
+        { pts: 2, desc: 'Parcialmente…' },
+        { pts: 3, desc: 'Plenamente…' }
       ]
-    },
+    }
+    // ... mais critérios
   ]
 }
 ```
 
 ---
 
-## Regras importantes
+## Regras
 
-### 1. Soma dos maxPts deve dar um valor redondo
-
-Para que a escala fique bonita (nota máxima = 10,00):
-
-```
-Σ maxPts_i = 10   → ideal (ex: 4 critérios de 2.5 pts, ou 5 de 2 pts)
-Σ maxPts_i = 7    → também funciona (o app normaliza automaticamente)
-```
-
-O app sempre normaliza para 0–10 independentemente da soma,  
-mas somas "redondas" facilitam a interpretação pelos professores.
-
-### 2. Descritores vazios = nível oculto
-
-Se um critério não usa todos os níveis, deixe o descritor como `''`:
-
-```javascript
-{
-  n: 'Aplicação / Testagem',
-  m: 0.5,
-  d: [
-    'Aplicação não relatada.',        // Não realizado (0 pts) — sempre aparece
-    'Aplicado/testado com o público.', // Insuficiente (0.5 pts)
-    '',   // ← vazio: este nível NÃO aparece para este critério
-    '',   // ← vazio: este nível NÃO aparece para este critério
-  ]
-}
-```
-
-O nível com `pts: 0` **sempre aparece** mesmo sem descritor (é o "não realizado").  
-Os outros só aparecem se tiverem descritor não-vazio.
-
-### 3. Número de descritores = número de níveis
-
-O array `d` deve ter **exatamente** o mesmo número de elementos que `nivs`.
+1. **Sempre inclua um nível com `pts: 0`** (não realizado) em cada critério.
+2. **A soma dos pontos máximos de todos os critérios deve ser 10.** O app normaliza para 0–10 de qualquer jeito, mas somas redondas são mais fáceis de interpretar.
+3. **A soma dos `peso` deve ser 100.** O modo `pct` usa o peso de cada critério; no modo `abs` ele é ignorado.
+4. **Descrição vazia esconde o nível** na aba Aplicar. Use isso só quando o critério realmente tiver menos opções.
+5. **Cada critério pode ter um número diferente de níveis** (por exemplo, um critério binário com 0 e 0,5).
+6. **Não repita a mesma pontuação** em dois níveis do mesmo critério: a seleção é guardada por pontos e os dois ficariam marcados.
+7. **Peso proporcional aos pontos** é o mais simples: os dois modos dão a mesma nota. Pesos diferentes só fazem diferença no modo `pct`.
 
 ---
 
-## Exemplos práticos
-
-### Rubrica simples (3 critérios, 4 níveis)
+## Exemplo: rubrica simples
 
 ```javascript
 {
-  titulo:     'Seminário EaD',
+  id: 't5',
+  titulo: 'Seminário EaD',
   disciplina: 'TEDPRO',
-  atividade:  'Apresentação de Seminário',
-  modo:       'abs',
-  nivs: [
-    { n: 'Não realizado',      p: 0 },
-    { n: 'Em desenvolvimento', p: 1 },
-    { n: 'Satisfatório',       p: 2 },
-    { n: 'Excelente',          p: 3 },
-  ],
-  crits: [
-    {
-      n: 'Qualidade do conteúdo',
-      m: 3,
-      d: [
-        'Não apresentou ou o conteúdo é inadequado.',
-        'Conteúdo superficial, com lacunas importantes.',
-        'Conteúdo adequado, com pequenas lacunas.',
-        'Conteúdo completo, preciso e bem fundamentado.',
-      ]
-    },
-    {
-      n: 'Clareza da apresentação',
-      m: 4,
-      d: [
-        'Não apresentou.',
-        'Apresentação confusa, difícil de acompanhar.',
-        'Apresentação clara na maior parte.',
-        'Apresentação muito clara, organizada e fluente.',
-      ]
-    },
-    {
-      n: 'Uso de recursos visuais',
-      m: 3,
-      d: [
-        'Sem recursos visuais.',
-        'Recursos visuais inadequados ou de baixa qualidade.',
-        'Recursos visuais adequados.',
-        'Recursos visuais excelentes, didáticos e bem elaborados.',
-      ]
-    },
+  atividade: 'Apresentação de seminário',
+  modo: 'abs',
+  criterios: [
+    { id: 'c1', nome: 'Qualidade do conteúdo', peso: 30, niveis: [
+      { pts: 0, desc: 'Não apresentou ou o conteúdo é inadequado.' },
+      { pts: 1, desc: 'Conteúdo superficial, com lacunas importantes.' },
+      { pts: 2, desc: 'Conteúdo adequado, com pequenas lacunas.' },
+      { pts: 3, desc: 'Conteúdo completo, preciso e bem fundamentado.' }
+    ]},
+    { id: 'c2', nome: 'Clareza da apresentação', peso: 40, niveis: [
+      { pts: 0, desc: 'Não apresentou.' },
+      { pts: 2, desc: 'Apresentação confusa, difícil de acompanhar.' },
+      { pts: 3, desc: 'Apresentação clara na maior parte.' },
+      { pts: 4, desc: 'Muito clara, organizada e fluente.' }
+    ]},
+    { id: 'c3', nome: 'Uso de recursos visuais', peso: 30, niveis: [
+      { pts: 0, desc: 'Sem recursos visuais.' },
+      { pts: 1, desc: 'Recursos inadequados ou de baixa qualidade.' },
+      { pts: 2, desc: 'Recursos adequados.' },
+      { pts: 3, desc: 'Recursos excelentes, didáticos e bem elaborados.' }
+    ]}
   ]
 }
-// Soma maxPts = 3 + 4 + 3 = 10 → máximo = nota 10 ✓
+// Pontos máximos: 3 + 4 + 3 = 10 · Pesos: 30 + 40 + 30 = 100 ✓
 ```
 
-### Rubrica com critérios de 2 níveis (binário)
+## Exemplo: critério binário
 
 ```javascript
-{
-  titulo:     'Entrega de Atividade',
-  disciplina: 'TGE',
-  atividade:  'Checklist de entrega',
-  modo:       'abs',
-  nivs: [
-    { n: 'Não entregue / Inadequado', p: 0 },
-    { n: 'Entregue / Adequado',       p: 1 },
-  ],
-  crits: [
-    { n: 'Prazo respeitado',          m: 1, d: ['Entrega fora do prazo.', 'Entrega dentro do prazo.'] },
-    { n: 'Formato correto',           m: 1, d: ['Formato incorreto.',     'Formato correto.'] },
-    { n: 'Completude do conteúdo',    m: 1, d: ['Incompleto.',            'Completo.'] },
-    // ...
-  ]
-}
-```
-
-### Rubrica com modo pesos (critérios de importância variável)
-
-```javascript
-{
-  titulo:     'Projeto Final',
-  disciplina: 'Práticas Profissionais',
-  atividade:  'Entrega do Projeto',
-  modo:       'pes',   // modo pesos percentuais
-  nivs: [
-    { n: 'Não realizado', p: 0 },
-    { n: 'Insuficiente',  p: 1 },
-    { n: 'Bom',           p: 2 },
-    { n: 'Excelente',     p: 3 },
-  ],
-  crits: [
-    // peso reflete importância; maxPts é o máximo desta escala de níveis
-    { n: 'Funcionalidade',  m: 3, d: ['...', '...', '...', '...'] },
-    { n: 'Documentação',    m: 3, d: ['...', '...', '...', '...'] },
-    { n: 'Apresentação',    m: 3, d: ['...', '...', '...', '...'] },
-  ]
-  // Ao abrir no modo 'pes', o app calcula automaticamente:
-  // peso Funcionalidade  = 3/9 × 100 = 33.3%
-  // peso Documentação    = 3/9 × 100 = 33.3%
-  // peso Apresentação    = 3/9 × 100 = 33.4% (absorve arredondamento)
-}
+{ id: 'c4', nome: 'Prazo respeitado', peso: 5, niveis: [
+  { pts: 0,   desc: 'Entrega fora do prazo.' },
+  { pts: 0.5, desc: 'Entrega dentro do prazo.' }
+]}
 ```
 
 ---
 
-## Verificação: sempre testar após adicionar
+## Verificação depois de adicionar
 
-Após adicionar um template:
+1. Abra o app e escolha o novo template em **📋 Usar template**.
+2. Na aba **▶ Aplicar**, marque **todos** os critérios no nível máximo: a nota deve ser **10,00**.
+3. Clique em **↺ Limpar** e marque todos no nível 0: a nota deve ser **0,00**.
+4. Troque para **⚖️ Pesos %** e repita os passos 2 e 3. Os resultados devem ser os mesmos.
 
-1. Abra o app no navegador
-2. Selecione o novo template em **📋 Usar template**
-3. Na aba **▶ Aplicar**: marque **todos** os critérios no nível máximo disponível
-   - A nota deve mostrar **10,00**
-4. Clique em **↺ Limpar** e marque **todos** em "Não realizado"
-   - A nota deve mostrar **0,00**
-5. Clique no toggle **⚖️ Pesos %** e repita os passos 3 e 4
-   - Resultados devem ser os mesmos
+Se divergir, confira:
 
-Se qualquer resultado divergir, verifique:
-- Os `maxPts` de cada critério correspondem ao maior nível COM DESCRITOR para aquele critério
-- O número de descritores em `d[]` é igual ao número de níveis em `nivs[]`
+- cada critério tem um nível com `pts: 0`;
+- a soma dos pontos máximos é 10 e a soma dos pesos é 100;
+- nenhum nível com pontos altos ficou sem descrição (ele é escondido, mas continua contando no máximo).
+
+O script `scripts/validar_rubricas.py` confere a matemática (10,00 e 0,00 nos dois modos) para as rubricas que estão nele. Ele tem uma cópia própria dos dados, então, ao criar um template novo, acrescente-o ao script também.
+
+---
+
+## Formato JSON de referência
+
+Os arquivos em `exemplos/` mostram uma estrutura de rubrica para uma futura importação/exportação em JSON. **O app ainda não importa esses arquivos**, e o formato deles (`niveis`, `maxPontos`, `descritores`) é diferente da estrutura interna descrita acima.

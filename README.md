@@ -18,9 +18,10 @@ O **Gerador de Rubricas** é uma Progressive Web App (PWA) que permite a profess
 - **Gerar rubricas com IA** a partir das instruções da atividade (texto colado e/ou PDFs, formulários e imagens anexados)
 - **Criar rubricas** do zero ou a partir de templates prontos
 - **Simular notas** clicando nos níveis de desempenho — nota calculada em tempo real (0 a 10)
-- **Dois modos de pontuação** intercambiáveis com conversão automática:
+- **Dois modos de pontuação** intercambiáveis:
   - **Pontos absolutos** — soma direta (ideal para rubricas com escala própria)
   - **Pesos percentuais** — ponderação por critério (ideal para critérios de importância variável)
+- **Imprimir / salvar em PDF** a rubrica completa
 - **Garantia matemática**: máximo sempre = 10,00 · mínimo sempre = 0,00
 - **Instalar como app** no Android, iOS e desktop (sem loja de aplicativos)
 - **Funcionar offline** após a primeira visita
@@ -57,7 +58,7 @@ https://rubricas-inovalab.pages.dev
 ## 📲 Instalação como PWA
 
 ### Android (Chrome)
-1. Acesse a URL do GitHub Pages no Chrome
+1. Acesse `https://rubricas-inovalab.pages.dev` no Chrome
 2. Toque no menu ⋮ → **"Adicionar à tela inicial"**
 3. O app aparece na tela inicial como qualquer outro aplicativo
 
@@ -71,7 +72,7 @@ https://rubricas-inovalab.pages.dev
 2. Clique no ícone de instalação na barra de endereço (ou menu → "Instalar")
 3. O app abre em janela própria, sem barra do navegador
 
-> **Nota:** Para instalar como PWA, o app precisa ser servido via HTTPS. O GitHub Pages fornece isso automaticamente.
+> **Nota:** Para instalar como PWA, o app precisa ser servido via HTTPS. O Cloudflare Pages fornece isso automaticamente.
 
 ---
 
@@ -128,7 +129,9 @@ A IA lê tudo, mostra um resumo do que entendeu da atividade e propõe critério
 | `ACESSO` | recomendada (secreta) | Código que o professor digita no app na primeira vez. Sem ele, qualquer pessoa com o link poderia gerar rubricas usando a sua chave |
 | `MODELO` | não | Modelo do provedor escolhido. Padrões: `gpt-6.1-sol` (OpenAI) e `claude-sonnet-5-5` (Anthropic) |
 
-Depois de criar/alterar variáveis, faça um novo deploy (ou *Retry deployment*). Vale também definir um limite de gasto mensal no console do provedor.
+Depois de criar/alterar variáveis, faça um novo deploy (variável só vale para implantações feitas depois de salva). Vale também definir um limite de gasto mensal no console do provedor.
+
+Passo a passo completo e solução de problemas: [docs/CONFIGURAR_IA.md](docs/CONFIGURAR_IA.md).
 
 ---
 
@@ -139,8 +142,9 @@ rubricas/
 ├── index.html          ← App completo (toda a lógica em um arquivo)
 ├── manifest.json       ← Manifesto PWA (nome, ícones, cores, orientação)
 ├── sw.js               ← Service Worker (cache offline, atualização automática)
-├── functions/api/gerar.js ← Proxy da IA (Cloudflare Pages Function)
+├── functions/api/gerar.js ← Função de IA (Cloudflare Pages Function; chave só no servidor)
 ├── _headers / _redirects  ← Configuração do Cloudflare Pages
+├── CHANGELOG.md        ← Histórico de versões
 ├── icon.svg            ← Ícone vetorial fonte
 ├── icon-72.png         ← Ícones PNG para dispositivos (todos os tamanhos)
 ├── icon-96.png
@@ -152,11 +156,14 @@ rubricas/
 ├── icon-512.png        ← Splash screen / maskable
 ├── docs/
 │   ├── ARQUITETURA.md  ← Como o código está organizado
+│   ├── CONFIGURAR_IA.md ← Chave, variáveis do Cloudflare e solução de problemas da IA
 │   ├── FORMULAS.md     ← Matemática das fórmulas de nota
 │   └── ADICIONAR_RUBRICA.md ← Como adicionar novos templates
 ├── exemplos/
-│   ├── rubrica-exemplo-simples.json   ← Estrutura de rubrica para importar
-│   └── rubrica-exemplo-completa.json  ← Rubrica com todos os campos
+│   ├── rubrica-exemplo-simples.json   ← Estrutura de referência (importação ainda não implementada)
+│   └── rubrica-p4-completa.json       ← Rubrica P4 completa, no mesmo formato de referência
+├── scripts/
+│   └── validar_rubricas.py ← Confere a matemática: máx = 10,00 e mín = 0,00 nos dois modos
 └── LICENSE             ← MIT
 ```
 
@@ -166,38 +173,33 @@ rubricas/
 
 ### Adicionar um novo template de rubrica
 
-Edite `index.html` e localize o array `const TPLS = [...]`. Adicione um objeto com esta estrutura:
+Edite `index.html` e localize o array `const TEMPLATES = [...]`. Adicione um objeto com esta estrutura:
 
 ```javascript
 {
+  id: 't5',                          // único entre os templates
   titulo: 'Nome da Rubrica',
   disciplina: 'Código da UC',
   atividade: 'Tipo de atividade avaliada',
-  modo: 'abs',   // 'abs' = pontos absolutos | 'pes' = pesos percentuais
-  nivs: [
-    { n: 'Não realizado',    p: 0   },
-    { n: 'Insuficiente',     p: 1   },
-    { n: 'Satisfatório',     p: 2   },
-    { n: 'Excelente',        p: 3   },
-  ],
-  crits: [
+  modo: 'abs',                       // 'abs' = pontos absolutos | 'pct' = pesos percentuais
+  criterios: [
     {
-      n: 'Nome do critério',
-      m: 3,         // maxPts: pontuação máxima para este critério
-      d: [          // descritores: um por nível, na mesma ordem que 'nivs'
-        'Descritor para Não realizado',
-        'Descritor para Insuficiente',
-        'Descritor para Satisfatório',
-        'Descritor para Excelente',
+      id: 'c1',
+      nome: 'Nome do critério',
+      peso: 30,                      // % do critério (soma 100)
+      niveis: [                      // do menor para o maior
+        { pts: 0, desc: 'Descritor para Não realizado' },
+        { pts: 2, desc: 'Descritor intermediário' },
+        { pts: 3, desc: 'Descritor para o nível máximo' }
       ]
-    },
+    }
     // ... mais critérios
   ]
 }
 ```
 
-> **Regra de ouro:** A soma dos `maxPts` de todos os critérios deve ser um valor conveniente  
-> (ex: 10). O app normaliza automaticamente para a escala 0–10.
+> **Regra de ouro:** a soma dos pontos máximos de todos os critérios deve ser 10 e a soma dos pesos, 100.
+> O app normaliza para a escala 0–10 de qualquer forma, mas somas redondas são mais fáceis de interpretar.
 
 Ver [docs/ADICIONAR_RUBRICA.md](docs/ADICIONAR_RUBRICA.md) para exemplos detalhados.
 
@@ -224,12 +226,9 @@ nota        = Σ(nota_crit_i × peso_i) / Σ(peso_i) × 10
 Cada critério é normalizado pelo seu próprio máximo, depois ponderado pelo peso.  
 Funciona corretamente mesmo quando critérios têm escalas diferentes (ex: 0–3 e 0–0,5).
 
-### Conversão automática entre modos
+### Relação entre os modos
 
-| De → Para | Fórmula |
-|---|---|
-| ABS → PES | `peso_i = (maxPts_i / Σ maxPts) × 100` |
-| PES → ABS | `maxPts_i = ptMax_global × (peso_i / maxPeso)` arredondado a 0,5 |
+O app não converte um modo no outro: trocar o modo muda a fórmula e limpa as seleções. No modo de pesos vale o campo **Peso %** de cada critério. Quando o peso é proporcional aos pontos máximos (caso dos 4 templates), os dois modos dão a mesma nota.
 
 Ver [docs/FORMULAS.md](docs/FORMULAS.md) para a derivação completa.
 
@@ -313,14 +312,17 @@ server {
 
 ---
 
-## 🔄 Evoluções previstas
+## 🔄 Evoluções
 
 - [x] Persistência com `localStorage` (rubricas salvas entre sessões no mesmo dispositivo)
-- [ ] Backend Python + SQLite (salvar no servidor, multiusuário)
-- [ ] Exportação de resultado em PDF (via `window.print()` já funciona)
-- [ ] Exportação em DOCX (relatório de avaliação)
-- [ ] Campo "Nome do aluno" + histórico de avaliações
+- [x] Impressão / PDF da rubrica (`window.print()`)
+- [x] Geração de rubrica com IA a partir das instruções da atividade, com anexos (PDF, imagens, texto)
+- [x] Chave de API somente no servidor (OpenAI ou Anthropic) e código de acesso
+- [ ] Salvar **avaliações por aluno** (histórico, nota por critério) e exportar em CSV
 - [ ] Importação/exportação de rubrica em JSON
+- [ ] Exportação em DOCX (relatório de avaliação)
+- [ ] Mensagem de erro neutra quando nenhuma chave está configurada
+- [ ] Backend Python + SQLite (salvar no servidor, multiusuário)
 - [ ] Modo professor: rubrica protegida, aluno só vê descritores
 - [ ] Integração com Moodle via LTI
 
