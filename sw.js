@@ -1,5 +1,9 @@
-const CACHE = 'rubricas-inovalab-v5';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+// Service Worker — Gerador de Rubricas · INOVALAB
+// Página (HTML): rede primeiro, cache como reserva offline → atualizações chegam sem trocar a versão.
+// Demais arquivos estáticos: cache primeiro, atualizado em segundo plano.
+// /api/*: nunca passa pelo cache.
+const CACHE = 'rubricas-inovalab-v6';
+const ASSETS = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
@@ -13,13 +17,32 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
+function guardar(req, resp) {
+  if (resp && resp.ok && resp.type === 'basic') {
+    const copia = resp.clone();
+    caches.open(CACHE).then(c => c.put(req, copia));
+  }
+  return resp;
+}
+
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
+  const req = e.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
+
+  if (req.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
+    e.respondWith(
+      fetch(req).then(r => guardar(req, r))
+        .catch(() => caches.match(req).then(c => c || caches.match('/index.html')))
+    );
+    return;
+  }
+
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).then(resp => {
-      const clone = resp.clone();
-      caches.open(CACHE).then(c => c.put(e.request, clone));
-      return resp;
-    }))
+    caches.match(req).then(cached => {
+      const rede = fetch(req).then(r => guardar(req, r)).catch(() => cached);
+      return cached || rede;
+    })
   );
 });

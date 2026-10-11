@@ -4,8 +4,8 @@
 Instituto Federal de Santa Catarina — Campus Continente  
 INOVALAB · Laboratório de Inovação e Mídias Digitais
 
-[![GitHub Pages](https://img.shields.io/badge/demo-live-brightgreen?logo=github)](https://rgbittencourt.github.io/rubricas)
-[![PWA](https://img.shields.io/badge/PWA-instalável-5A0FC8?logo=pwa)](https://rgbittencourt.github.io/rubricas)
+[![Cloudflare Pages](https://img.shields.io/badge/demo-live-brightgreen?logo=cloudflare)](https://rubricas-inovalab.pages.dev)
+[![PWA](https://img.shields.io/badge/PWA-instalável-5A0FC8?logo=pwa)](https://rubricas-inovalab.pages.dev)
 [![Licença](https://img.shields.io/badge/licença-MIT-blue)](LICENSE)
 [![Feito com](https://img.shields.io/badge/feito%20com-HTML%20%2B%20JS%20puro-orange)](index.html)
 
@@ -15,6 +15,7 @@ INOVALAB · Laboratório de Inovação e Mídias Digitais
 
 O **Gerador de Rubricas** é uma Progressive Web App (PWA) que permite a professores e coordenadores de curso:
 
+- **Gerar rubricas com IA** a partir das instruções da atividade (texto colado e/ou PDFs, formulários e imagens anexados)
 - **Criar rubricas** do zero ou a partir de templates prontos
 - **Simular notas** clicando nos níveis de desempenho — nota calculada em tempo real (0 a 10)
 - **Dois modos de pontuação** intercambiáveis com conversão automática:
@@ -43,7 +44,7 @@ Todos os templates foram validados matematicamente: marcar todos os maiores nív
 
 **Opção 1 — Direto no navegador:**
 ```
-https://rgbittencourt.github.io/rubricas
+https://rubricas-inovalab.pages.dev
 ```
 
 **Opção 2 — Arquivo local:**
@@ -97,6 +98,35 @@ php -S localhost:8080
 
 > Abrir `index.html` diretamente (`file://`) funciona para testar o visual,  
 > mas o Service Worker (cache offline) requer um servidor HTTP.
+>
+> A **geração com IA** depende da função `functions/api/gerar.js`, que só roda no Cloudflare Pages.
+> Para testá-la localmente: `npx wrangler pages dev .` com um arquivo `.dev.vars` contendo `ANTHROPIC_KEY=sk-ant-...`
+> (o `.dev.vars` está no `.gitignore`).
+
+---
+
+## ✨ Geração de rubrica com IA
+
+Na tela **✨ Gerar com IA** o professor:
+
+1. Cola as **instruções da atividade** como foram passadas aos alunos, e/ou
+2. Anexa **arquivos** (até 5, 15 MB no total): enunciado em PDF, formulário/modelo a ser preenchido, prints (PNG/JPG/WebP) ou texto (.txt/.md);
+3. Opcionalmente escreve **orientações para a rubrica** (ex.: "mais peso para a aplicação");
+4. Escolhe o **número de critérios** e o **modo de pontuação**.
+
+A IA lê tudo, mostra um resumo do que entendeu da atividade e propõe critérios e descritores, que podem ser editados antes de salvar.
+
+**Como funciona por trás:** o navegador envia os dados para `/api/gerar` (Cloudflare Pages Function, mesmo domínio do app). A função chama a API da Anthropic com a chave guardada **somente no servidor**; nenhuma chave fica no navegador.
+
+**Configuração (Cloudflare Pages → projeto → Settings → Variables and Secrets):**
+
+| Variável | Obrigatória | Para quê |
+|---|---|---|
+| `ANTHROPIC_KEY` | sim (secreta) | Chave `sk-ant-...` da Anthropic |
+| `ACESSO` | recomendada (secreta) | Código que o professor digita no app na primeira vez. Sem ele, qualquer pessoa com o link poderia gerar rubricas usando a sua chave |
+| `MODELO` | não | Modelo da Anthropic. Padrão: `claude-sonnet-5-5` |
+
+Depois de criar/alterar variáveis, faça um novo deploy (ou *Retry deployment*). Vale também definir um limite de gasto mensal no console da Anthropic.
 
 ---
 
@@ -107,6 +137,8 @@ rubricas/
 ├── index.html          ← App completo (toda a lógica em um arquivo)
 ├── manifest.json       ← Manifesto PWA (nome, ícones, cores, orientação)
 ├── sw.js               ← Service Worker (cache offline, atualização automática)
+├── functions/api/gerar.js ← Proxy da IA (Cloudflare Pages Function)
+├── _headers / _redirects  ← Configuração do Cloudflare Pages
 ├── icon.svg            ← Ícone vetorial fonte
 ├── icon-72.png         ← Ícones PNG para dispositivos (todos os tamanhos)
 ├── icon-96.png
@@ -123,9 +155,6 @@ rubricas/
 ├── exemplos/
 │   ├── rubrica-exemplo-simples.json   ← Estrutura de rubrica para importar
 │   └── rubrica-exemplo-completa.json  ← Rubrica com todos os campos
-├── .github/
-│   └── workflows/
-│       └── deploy.yml  ← GitHub Actions: deploy automático no GitHub Pages
 └── LICENSE             ← MIT
 ```
 
@@ -204,16 +233,9 @@ Ver [docs/FORMULAS.md](docs/FORMULAS.md) para a derivação completa.
 
 ---
 
-## 🌐 Deploy — GitHub Pages ou Cloudflare Pages
+## 🌐 Deploy — Cloudflare Pages
 
-O repositório inclui GitHub Actions para deploy automático nos dois serviços.  
-Ambos são **gratuitos**, com **HTTPS automático** e **PWA instalável**.
-
----
-
-### Opção A — Cloudflare Pages (recomendado)
-
-CDN global, mais rápido, suporte nativo a `_headers` e `_redirects`.
+Gratuito, com **HTTPS automático**, **PWA instalável** e suporte a `_headers`, `_redirects` e Pages Functions (usadas pela geração com IA).
 
 **1. Crie uma conta em [pages.cloudflare.com](https://pages.cloudflare.com)**
 
@@ -225,26 +247,24 @@ CDN global, mais rápido, suporte nativo a `_headers` e `_redirects`.
 - Build output directory: `/` (raiz)
 - Clique **Save and Deploy**
 
-**3. O app fica em:**
+> Projetos criados por **upload direto** (arrastar arquivos no painel) **não publicam a pasta `functions/`**.
+> Use a conexão com o Git (acima) ou `npx wrangler pages deploy . --project-name rubricas-inovalab`.
+
+**3. Configure as variáveis da IA** (tabela na seção *Geração de rubrica com IA*).
+
+**4. O app fica em:**
 ```
 https://rubricas-inovalab.pages.dev
 ```
 
-**4. Domínio personalizado (opcional):**  
+**5. Domínio personalizado (opcional):**  
 Settings → Custom domains → `rubricas.seudominio.com`
 
----
-
-### Opção B — GitHub Pages
-
-**1.** Vá em **Settings → Pages** no repositório  
-**2.** Em **Source**, selecione **GitHub Actions**  
-**3.** Faça um push — deploy automático em ~1 minuto  
-**4.** App em: `https://rgbittencourt.github.io/rubricas`
+> GitHub Pages e servidores estáticos (seção abaixo) servem o app normalmente, mas **sem** a geração com IA.
 
 ---
 
-### Deploy via terminal (qualquer opção)
+### Atualizar o app
 
 ```bash
 git clone https://github.com/rgbittencourt/rubricas.git

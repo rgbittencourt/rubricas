@@ -128,11 +128,27 @@ main{flex:1;padding:16px;max-width:960px;width:100%;margin:0 auto}
 @keyframes spin{to{transform:rotate(360deg)}}
 .ia-erro{color:var(--vermelho);font-size:.83rem;margin-top:8px;padding:8px 12px;background:#fce8ea;border-radius:6px;display:none}
 
-/* CHAVE API */
-.api-key-box{background:#fff3cd;border:1px solid #ffe082;border-radius:8px;padding:12px;margin-bottom:12px;font-size:.83rem}
-.api-key-box p{color:#5a4000;margin-bottom:8px}
-.api-key-box input{width:100%;padding:7px 10px;border:1px solid #ffe082;border-radius:6px;font-size:.85rem;font-family:monospace}
-.api-key-box small{color:#795548;display:block;margin-top:5px}
+/* ANEXOS / CÓDIGO DE ACESSO */
+.ia-sub{font-size:.82rem;color:#5b3d8a;margin:-4px 0 8px}
+.ia-campo{margin-top:12px}
+.ia-campo>label{display:block;font-size:.82rem;font-weight:600;color:#4a0080;margin-bottom:5px}
+.ia-box textarea.obs{min-height:60px}
+.dropzone{display:block;border:2px dashed #c5a8ff;border-radius:8px;background:#fff;padding:14px;text-align:center;cursor:pointer;font-size:.85rem;color:#4a0080;transition:.12s}
+.dropzone:hover,.dropzone.ativo{background:#f6f0ff;border-color:#7c3aed}
+.dropzone small{display:block;color:var(--cinza);margin-top:3px;font-size:.76rem}
+.dropzone input{display:none}
+.lista-anexos{list-style:none;margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.lista-anexos li{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e0cfff;border-radius:6px;padding:6px 10px;font-size:.83rem}
+.lista-anexos li span.nome{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lista-anexos li span.tam{color:var(--cinza);font-size:.76rem}
+.lista-anexos li button{background:none;border:none;color:var(--vermelho);cursor:pointer;font-size:.9rem}
+.acesso-box{background:#fff3cd;border:1px solid #ffe082;border-radius:8px;padding:12px;margin-bottom:12px;font-size:.83rem}
+.acesso-box p{color:#5a4000;margin-bottom:8px}
+.acesso-box input{width:100%;padding:7px 10px;border:1px solid #ffe082;border-radius:6px;font-size:.85rem}
+.ia-analise{background:#fff;border-left:4px solid #7c3aed;border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:.86rem;line-height:1.5;color:#333}
+.ia-analise strong{color:#4a0080}
+.ia-somas{font-size:.8rem;color:var(--cinza);margin:-4px 0 10px}
+.ia-somas.alerta{color:#a15c00}
 
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
@@ -219,35 +235,48 @@ footer a{color:var(--azul2)}
     <h2 style="color:#4a0080;font-size:1.1rem">✨ Gerar rubrica com IA</h2>
   </div>
 
-  <!-- CHAVE API -->
-  <div class="api-key-box" id="api-key-box">
-    <p>🔑 <strong>Chave de API Anthropic</strong> — necessária para a geração com IA.</p>
-    <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off">
-    <small>A chave é salva apenas neste navegador (localStorage) e nunca é enviada para nenhum servidor além da Anthropic.</small>
+  <!-- CÓDIGO DE ACESSO (só aparece se o servidor exigir) -->
+  <div class="acesso-box d-none" id="acesso-box">
+    <p>🔐 <strong>Código de acesso</strong> — peça ao coordenador do INOVALAB.</p>
+    <input type="password" id="acesso-input" placeholder="Código de acesso" autocomplete="off">
     <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-sm btn-primario" onclick="salvarChave()">💾 Salvar chave</button>
-      <button class="btn btn-sm btn-perigo" onclick="limparChave()">🗑 Remover</button>
+      <button class="btn btn-sm btn-primario" onclick="salvarAcesso()">💾 Salvar</button>
+      <button class="btn btn-sm btn-perigo" onclick="limparAcesso()">🗑 Remover</button>
     </div>
   </div>
 
   <!-- FORMULÁRIO IA -->
   <div class="ia-box">
-    <h3>🎯 Descrição da atividade</h3>
-    <textarea id="ia-descricao" placeholder="Cole aqui a descrição completa da atividade: o que deve ser produzido, apresentado, quais são os objetivos, o público-alvo, formato esperado, critérios já conhecidos, etc.
+    <h3>📄 Instruções da atividade</h3>
+    <p class="ia-sub">Cole o enunciado exatamente como foi passado aos alunos e/ou anexe os arquivos da atividade. A IA lê tudo e propõe a rubrica.</p>
+    <textarea id="ia-descricao" placeholder="Cole aqui as instruções da atividade: o que deve ser produzido, etapas, formato de entrega, formulários a preencher, prazos, critérios já combinados…"></textarea>
 
-Quanto mais detalhes você fornecer, melhor será a rubrica gerada."></textarea>
+    <div class="ia-campo">
+      <label>📎 Arquivos da atividade (opcional)</label>
+      <label class="dropzone" id="dropzone">
+        <input type="file" id="ia-arquivos" multiple accept=".pdf,application/pdf,image/png,image/jpeg,image/webp,.txt,.md,text/plain,text/markdown" onchange="adicionarArquivos(this.files);this.value=''">
+        Clique ou arraste aqui: enunciado em PDF, formulário/modelo a preencher, prints…
+        <small>PDF, imagem (PNG/JPG/WebP) ou texto · até 5 arquivos · 15 MB no total</small>
+      </label>
+      <ul class="lista-anexos" id="lista-anexos"></ul>
+    </div>
+
+    <div class="ia-campo">
+      <label for="ia-obs">🧭 Orientações para a rubrica (opcional)</label>
+      <textarea id="ia-obs" class="obs" placeholder="Ex.: dar mais peso à aplicação com o público-alvo; incluir critério de uso transparente de IA; linguagem mais objetiva…"></textarea>
+    </div>
 
     <div class="ia-config">
       <label>Número de critérios:</label>
       <input type="number" id="ia-num-crit" value="5" min="1" max="15">
       <label style="margin-left:8px">Modo de pontuação:</label>
       <select id="ia-modo">
-        <option value="abs">Pontos absolutos</option>
-        <option value="pct">Pesos percentuais</option>
+        <option value="abs">Pontos absolutos (soma 10)</option>
+        <option value="pct">Pesos percentuais (soma 100%)</option>
       </select>
     </div>
 
-    <button class="btn btn-ia" onclick="gerarComIA()">✨ Gerar rubrica</button>
+    <button class="btn btn-ia" id="btn-gerar" onclick="gerarComIA()">✨ Gerar rubrica</button>
 
     <div class="ia-spinner" id="ia-spinner">
       <div class="spinner"></div>
@@ -261,6 +290,7 @@ Quanto mais detalhes você fornecer, melhor será a rubrica gerada."></textarea>
     <div class="aviso aviso-info" style="margin-bottom:12px">
       ✅ Rubrica gerada! Revise e edite abaixo antes de salvar.
     </div>
+    <div class="ia-analise d-none" id="ia-analise"></div>
 
     <div class="editor-section">
       <h3>📋 Identificação</h3>
@@ -273,6 +303,7 @@ Quanto mais detalhes você fornecer, melhor será a rubrica gerada."></textarea>
 
     <div class="editor-section">
       <h3>🎯 Critérios gerados — edite à vontade</h3>
+      <div class="ia-somas" id="ia-somas"></div>
       <div id="ia-criterios-editor"></div>
       <button class="btn-add" onclick="iaAddCriterio()">＋ Adicionar critério</button>
     </div>
@@ -556,23 +587,74 @@ setInterval(tick,15000); tick();
 // =====================
 // CHAVE API
 // =====================
-const KEY_LS = 'anthropic-api-key';
-function getChave() { try { return localStorage.getItem(KEY_LS)||''; } catch(e){return '';} }
-function salvarChave() {
-  const k = document.getElementById('api-key-input').value.trim();
-  if (!k) return alert('Digite a chave antes de salvar.');
-  try { localStorage.setItem(KEY_LS, k); } catch(e){}
-  document.getElementById('api-key-input').value = '••••••••••••' + k.slice(-6);
-  document.getElementById('api-key-box').style.borderColor='#a8e6a3';
+// A chave da Anthropic agora fica só no servidor (functions/api/gerar.js).
+// Remove chaves antigas que versões anteriores salvavam no navegador.
+try { localStorage.removeItem('anthropic-api-key'); } catch(e){}
+
+const ACESSO_LS = 'inovalab-rubricas-acesso';
+function getAcesso() { try { return localStorage.getItem(ACESSO_LS)||''; } catch(e){return '';} }
+function salvarAcesso() {
+  const k = document.getElementById('acesso-input').value.trim();
+  if (!k) return alert('Digite o código antes de salvar.');
+  try { localStorage.setItem(ACESSO_LS, k); } catch(e){}
+  document.getElementById('acesso-input').value='';
+  document.getElementById('acesso-input').placeholder='Código salvo ✓';
 }
-function limparChave() {
-  try { localStorage.removeItem(KEY_LS); } catch(e){}
-  document.getElementById('api-key-input').value='';
+function limparAcesso() {
+  try { localStorage.removeItem(ACESSO_LS); } catch(e){}
+  document.getElementById('acesso-input').value='';
+  document.getElementById('acesso-input').placeholder='Código de acesso';
 }
-function initChaveUI() {
-  const k = getChave();
-  if (k) document.getElementById('api-key-input').value='••••••••••••'+k.slice(-6);
+function initAcessoUI() {
+  const box=document.getElementById('acesso-box');
+  if (getAcesso()) { box.classList.remove('d-none'); document.getElementById('acesso-input').placeholder='Código salvo ✓'; }
 }
+
+// =====================
+// ANEXOS
+// =====================
+const MAX_ARQ = 5, MAX_BYTES = 15*1024*1024;
+const TIPOS_EXT = {pdf:'application/pdf',png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',txt:'text/plain',md:'text/markdown'};
+let anexos = []; // {nome, tipo, tamanho, dados(base64)}
+
+function tipoDoArquivo(f){
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  if (Object.values(TIPOS_EXT).includes(f.type)) return f.type;
+  return TIPOS_EXT[ext]||'';
+}
+function lerBase64(f){
+  return new Promise((ok,erro)=>{
+    const fr=new FileReader();
+    fr.onload=()=>ok(String(fr.result).split(',')[1]||'');
+    fr.onerror=()=>erro(fr.error);
+    fr.readAsDataURL(f);
+  });
+}
+function fmtTam(b){return b>1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB';}
+async function adicionarArquivos(lista){
+  for (const f of Array.from(lista||[])) {
+    const tipo=tipoDoArquivo(f);
+    if (!tipo) { alert(`"${f.name}": formato não suportado. Use PDF, imagem (PNG/JPG/WebP) ou texto.`); continue; }
+    if (anexos.length>=MAX_ARQ) { alert(`Máximo de ${MAX_ARQ} arquivos.`); break; }
+    const total=anexos.reduce((a,x)=>a+x.tamanho,0)+f.size;
+    if (total>MAX_BYTES) { alert(`"${f.name}" ultrapassa o limite de 15 MB no total.`); continue; }
+    try { anexos.push({nome:f.name,tipo,tamanho:f.size,dados:await lerBase64(f)}); }
+    catch(e) { alert(`Não foi possível ler "${f.name}".`); }
+  }
+  renderAnexos();
+}
+function removerAnexo(i){ anexos.splice(i,1); renderAnexos(); }
+function renderAnexos(){
+  const ic=t=>t==='application/pdf'?'📕':t.startsWith('image/')?'🖼':'📄';
+  document.getElementById('lista-anexos').innerHTML=anexos.map((a,i)=>
+    `<li><span>${ic(a.tipo)}</span><span class="nome" title="${esc(a.nome)}">${esc(a.nome)}</span><span class="tam">${fmtTam(a.tamanho)}</span><button onclick="removerAnexo(${i})" title="Remover">✕</button></li>`).join('');
+}
+(function initDropzone(){
+  const dz=document.getElementById('dropzone'); if(!dz) return;
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('ativo');}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('ativo');}));
+  dz.addEventListener('drop',e=>adicionarArquivos(e.dataTransfer.files));
+})();
 
 // =====================
 // NAVEGAÇÃO
@@ -586,7 +668,7 @@ function abrirTelaIA() {
   document.getElementById('tela-home').classList.add('d-none');
   document.getElementById('tela-ia').classList.remove('d-none');
   document.getElementById('ia-resultado').classList.add('d-none');
-  initChaveUI();
+  initAcessoUI();
 }
 
 // =====================
@@ -600,12 +682,11 @@ function renderHome() {
     return;
   }
   g.innerHTML=DB.map(r=>{
-    const n=calcNota(r,{}); // sem seleção → null
-    const badge=n!==null?n.toFixed(2):'—';
+    const nc=(r.criterios||[]).length;
     return `<div class="card" onclick="abrirRubrica(${r.id})">
-      <h3>${r.titulo||'Sem título'}</h3>
-      <div class="meta">${[r.disciplina,r.atividade].filter(Boolean).join(' · ')}</div>
-      <span class="nota-badge">Nota: ${badge}</span>
+      <h3>${esc(r.titulo||'Sem título')}</h3>
+      <div class="meta">${esc([r.disciplina,r.atividade].filter(Boolean).join(' · '))}</div>
+      <span class="nota-badge">${nc} critério${nc!==1?'s':''}</span>
       <div class="card-acoes" onclick="event.stopPropagation()">
         <button onclick="abrirRubrica(${r.id})">▶ Abrir</button>
         <button onclick="duplicar(${r.id})">⧉ Duplic.</button>
@@ -710,13 +791,13 @@ function renderAplicar(r) {
     const niv=c.niveis.filter(n=>n.desc&&n.desc.trim());
     if(!niv.length) return '';
     return `<div class="criterio-card">
-      <h4>${c.nome||'Critério'}</h4>
+      <h4>${esc(c.nome||'Critério')}</h4>
       <div class="niveis-grid">
         ${niv.map(n=>{
           const z=n.pts===0,s=selecoes[c.id]===n.pts;
           return `<button class="nivel-btn${z?' nivel-zero':''}${s?' selecionado':''}"
             onclick="selecionarNivel('${c.id}',${n.pts},this)">
-            <span class="nivel-pts${z?' zero':''}">${n.pts} pt${n.pts!==1?'s':''}</span>${n.desc}
+            <span class="nivel-pts${z?' zero':''}">${n.pts} pt${n.pts!==1?'s':''}</span>${esc(n.desc)}
           </button>`;
         }).join('')}
       </div>
@@ -848,10 +929,10 @@ function renderPreview(r){
   document.getElementById('prev-meta').textContent=meta;
   document.getElementById('preview-tabela').innerHTML=r.criterios.map(c=>{
     const niv=[...c.niveis].sort((a,b)=>b.pts-a.pts);
-    return `<h3 style="color:var(--azul);margin:12px 0 6px;font-size:.9rem">${c.nome}</h3>
+    return `<h3 style="color:var(--azul);margin:12px 0 6px;font-size:.9rem">${esc(c.nome)}</h3>
     <table class="preview-table">
       <thead><tr>${niv.map(n=>`<th>${n.pts} pt${n.pts!==1?'s':''}</th>`).join('')}</tr></thead>
-      <tbody><tr>${niv.map(n=>`<td>${n.desc||''}</td>`).join('')}</tr></tbody>
+      <tbody><tr>${niv.map(n=>`<td>${esc(n.desc)}</td>`).join('')}</tr></tbody>
     </table>`;
   }).join('');
 }
@@ -862,8 +943,8 @@ function renderPreview(r){
 function abrirModalTemplate(){
   document.getElementById('template-list').innerHTML=TEMPLATES.map(t=>`
     <div class="template-item" onclick="usarTemplate('${t.id}')">
-      <h4>${t.titulo}</h4>
-      <p>${t.disciplina} · ${t.criterios.length} critérios</p>
+      <h4>${esc(t.titulo)}</h4>
+      <p>${esc(t.disciplina)} · ${t.criterios.length} critérios</p>
     </div>`).join('');
   document.getElementById('modal-template').classList.remove('d-none');
 }
@@ -903,120 +984,99 @@ document.querySelectorAll('.modal-overlay').forEach(m=>{
 let iaCriterios = [];
 
 async function gerarComIA() {
-  const descricao = document.getElementById('ia-descricao').value.trim();
-  if (!descricao) { alert('Por favor, descreva a atividade antes de gerar.'); return; }
+  const instrucoes = document.getElementById('ia-descricao').value.trim();
+  const observacoes = document.getElementById('ia-obs').value.trim();
+  if (!instrucoes && !anexos.length) { alert('Cole as instruções da atividade ou anexe ao menos um arquivo.'); return; }
 
-  const chave = getChave();
-  if (!chave || !chave.startsWith('sk-')) {
-    alert('Configure uma chave de API da Anthropic válida acima (começa com sk-ant-...).'); return;
-  }
-
-  const numCrit = parseInt(document.getElementById('ia-num-crit').value)||5;
+  const numCrit = Math.min(15, Math.max(1, parseInt(document.getElementById('ia-num-crit').value)||5));
   const modo = document.getElementById('ia-modo').value;
 
   const spinner = document.getElementById('ia-spinner');
   const erro = document.getElementById('ia-erro');
   const result = document.getElementById('ia-resultado');
-  spinner.style.display='flex'; erro.style.display='none'; result.classList.add('d-none');
+  const btn = document.getElementById('btn-gerar');
+  spinner.style.display='flex'; erro.style.display='none'; result.classList.add('d-none'); btn.disabled=true;
 
-  const msgs = [{ spinner_msg: 'Analisando a atividade…' }, { spinner_msg: 'Criando critérios…' }, { spinner_msg: 'Redigindo descritores…' }];
+  const msgs = [anexos.length?'Lendo os arquivos da atividade…':'Lendo as instruções…','Identificando entregas e requisitos…','Criando critérios…','Redigindo descritores…'];
   let mi = 0;
+  document.getElementById('ia-spinner-msg').textContent = msgs[0];
   const interval = setInterval(() => {
-    mi = (mi+1)%msgs.length;
-    document.getElementById('ia-spinner-msg').textContent = msgs[mi].spinner_msg;
-  }, 2000);
+    mi = Math.min(mi+1, msgs.length-1);
+    document.getElementById('ia-spinner-msg').textContent = msgs[mi];
+  }, 4000);
 
-  const prompt = `Você é um especialista em avaliação educacional do IFSC (Instituto Federal de Santa Catarina), com experiência em programas de pós-graduação como TEDPRO e TGE. Sua tarefa é criar uma rubrica de avaliação completa e detalhada.
-
-DESCRIÇÃO DA ATIVIDADE:
-${descricao}
-
-INSTRUÇÕES:
-- Crie exatamente ${numCrit} critérios de avaliação
-- Para cada critério, crie entre 2 e 4 descritores (níveis de desempenho)
-- O menor nível DEVE ter 0 pontos e descrever a não realização ou entrega insatisfatória
-- Os demais níveis devem ter pontuações crescentes e realistas para somar 10 no máximo entre todos os critérios
-- Os textos devem ser claros, objetivos e no estilo acadêmico brasileiro, mas humanizados (não robóticos)
-- Use linguagem de avaliação formativa, focada no que o aluno fez ou deixou de fazer
-- O peso de cada critério deve ser proporcional à sua importância (soma dos pesos = 100%)
-
-Responda APENAS com um JSON válido no seguinte formato (sem texto antes ou depois):
-{
-  "titulo": "título sugerido para a rubrica",
-  "disciplina": "disciplina ou UC sugerida",
-  "atividade": "nome curto da atividade",
-  "criterios": [
-    {
-      "nome": "nome do critério",
-      "peso": 20,
-      "niveis": [
-        {"pts": 0, "desc": "descrição do nível não realizado"},
-        {"pts": 2, "desc": "descrição do nível intermediário"},
-        {"pts": 4, "desc": "descrição do nível satisfatório"}
-      ]
-    }
-  ]
-}`;
+  const ctrl = new AbortController();
+  const timeout = setTimeout(()=>ctrl.abort(), 240000);
+  const fim = () => { clearInterval(interval); clearTimeout(timeout); spinner.style.display='none'; btn.disabled=false; };
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': chave,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-calls': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-opus-4-5',
-        max_tokens: 4096,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
+    const headers = { 'Content-Type': 'application/json' };
+    const acesso = getAcesso(); if (acesso) headers['X-Codigo-Acesso'] = acesso;
 
-    clearInterval(interval);
-
-    if (!resp.ok) {
-      const err = await resp.json().catch(()=>({}));
-      throw new Error(err?.error?.message || `Erro HTTP ${resp.status}`);
+    let resp;
+    try {
+      resp = await fetch('/api/gerar', {
+        method: 'POST', headers, signal: ctrl.signal,
+        body: JSON.stringify({ instrucoes, observacoes, numCrit, modo,
+          arquivos: anexos.map(a=>({nome:a.nome,tipo:a.tipo,dados:a.dados})) })
+      });
+    } catch (e) {
+      throw new Error(e.name==='AbortError'
+        ? 'A geração demorou demais e foi interrompida. Tente com menos arquivos ou menos critérios.'
+        : 'Sem conexão com o servidor. Verifique sua internet e tente novamente.');
     }
 
-    const data = await resp.json();
-    const text = data.content?.[0]?.text || '';
+    const data = await resp.json().catch(()=>null);
+    if (!data) throw new Error(resp.status===404||resp.status===405
+      ? 'O serviço de IA não está disponível neste endereço. Use https://rubricas-inovalab.pages.dev.'
+      : `Resposta inesperada do servidor (HTTP ${resp.status}).`);
+    if (!resp.ok) {
+      if (data.codigo==='acesso') document.getElementById('acesso-box').classList.remove('d-none');
+      throw new Error(data.erro || `Erro HTTP ${resp.status}`);
+    }
 
-    // Extrair JSON da resposta
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('A IA não retornou um JSON válido. Tente novamente.');
+    const rubrica = data.rubrica;
+    if (!rubrica || !Array.isArray(rubrica.criterios) || !rubrica.criterios.length) throw new Error('Estrutura inválida na resposta da IA. Tente novamente.');
 
-    const rubrica = JSON.parse(jsonMatch[0]);
-    if (!rubrica.criterios || !Array.isArray(rubrica.criterios)) throw new Error('Estrutura inválida na resposta da IA.');
-
-    // Atribuir IDs
+    // IDs, números válidos e níveis em ordem crescente
+    const t = Date.now();
     rubrica.criterios = rubrica.criterios.map((c,i) => ({
-      id: 'c'+Date.now()+'_'+i,
-      nome: c.nome||`Critério ${i+1}`,
-      peso: c.peso||Math.floor(100/numCrit),
-      niveis: (c.niveis||[]).map(n=>({pts:n.pts||0, desc:n.desc||''}))
+      id: 'c'+t+'_'+i,
+      nome: String(c.nome||`Critério ${i+1}`),
+      peso: Number(c.peso)||Math.floor(100/rubrica.criterios.length),
+      niveis: (Array.isArray(c.niveis)?c.niveis:[])
+        .map(n=>({pts:Number(n.pts)||0, desc:String(n.desc||'')}))
+        .sort((a,b)=>a.pts-b.pts)
     }));
 
     iaCriterios = rubrica.criterios;
-
-    // Preencher formulário
     document.getElementById('ia-titulo').value = rubrica.titulo||'';
     document.getElementById('ia-disc').value = rubrica.disciplina||'';
     document.getElementById('ia-ativ').value = rubrica.atividade||'';
+    const an = document.getElementById('ia-analise');
+    if (rubrica.analise) { an.innerHTML = '<strong>O que a IA entendeu da atividade:</strong> ' + esc(rubrica.analise); an.classList.remove('d-none'); }
+    else an.classList.add('d-none');
 
     renderIAEditor();
-    spinner.style.display='none';
+    fim();
     result.classList.remove('d-none');
     result.scrollIntoView({behavior:'smooth',block:'start'});
-
   } catch(e) {
-    clearInterval(interval);
-    spinner.style.display='none';
+    fim();
     erro.style.display='block';
-    erro.textContent='❌ ' + (e.message||'Erro desconhecido. Verifique a chave de API e tente novamente.');
+    erro.textContent='❌ ' + (e.message||'Erro desconhecido. Tente novamente.');
   }
+}
+
+function iaSomas(){
+  const el=document.getElementById('ia-somas'); if(!el) return;
+  const somaMax=iaCriterios.reduce((a,c)=>a+Math.max(0,...c.niveis.map(n=>+n.pts||0)),0);
+  const somaPeso=iaCriterios.reduce((a,c)=>a+(+c.peso||0),0);
+  const modo=document.getElementById('ia-modo').value;
+  const ok = modo==='pct' ? Math.abs(somaPeso-100)<0.01 : Math.abs(somaMax-10)<0.01;
+  el.className='ia-somas'+(ok?'':' alerta');
+  el.textContent=`Soma dos pontos máximos: ${+somaMax.toFixed(2)} · Soma dos pesos: ${+somaPeso.toFixed(2)}%`
+    + (ok?'':' — a nota final é normalizada para 0–10 mesmo assim.');
 }
 
 // =====================
@@ -1035,13 +1095,14 @@ function renderIAEditor() {
       </div>
       <div class="form-row"><label>Peso %</label>
         <input type="number" min="0" max="100" value="${c.peso||1}" style="max-width:80px"
-          onchange="iaGetC('${c.id}').peso=+this.value">
+          onchange="iaGetC('${c.id}').peso=+this.value;iaSomas()">
       </div>
       <div id="ia-niv-${c.id}">
         ${c.niveis.map((n,ni)=>iaNivHTML(c.id,ni,n)).join('')}
       </div>
       <button class="btn-add" onclick="iaAddNivel('${c.id}')">＋ Adicionar nível</button>
     </div>`).join('');
+  iaSomas();
 }
 
 function iaNivHTML(cid,ni,n){
@@ -1049,7 +1110,7 @@ function iaNivHTML(cid,ni,n){
     <div class="form-row">
       <label>Pontos</label>
       <input type="number" min="0" step="0.5" value="${n.pts}" style="max-width:80px"
-        onchange="iaGetC('${cid}').niveis[${ni}].pts=+this.value">
+        onchange="iaGetC('${cid}').niveis[${ni}].pts=+this.value;iaSomas()">
       <button class="btn-remover" onclick="iaRemNivel('${cid}',${ni})">✕</button>
     </div>
     <div class="form-row">

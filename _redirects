@@ -1,2 +1,2 @@
-# SPA fallback — todas as rotas servem o index.html
-/*    /index.html    200
+# Sem regras de redirecionamento: o app é uma página única (index.html)
+# e /api/gerar é atendido pela Pages Function em functions/api/gerar.js.
