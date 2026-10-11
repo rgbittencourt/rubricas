@@ -1,16 +1,23 @@
 // Cloudflare Pages Function — POST /api/gerar
-// Proxy seguro para a API da Anthropic: a chave fica só no servidor.
+// Proxy seguro para a IA (OpenAI ou Anthropic): a chave fica só no servidor.
 //
 // Variáveis de ambiente (Pages > Settings > Variables and Secrets):
-//   ANTHROPIC_KEY  (obrigatória, secreta)  chave sk-ant-...
-//   ACESSO         (opcional, secreta)     código que o professor digita no app;
-//                                          se definida, sem ela a geração é recusada
-//   MODELO         (opcional)              padrão: claude-sonnet-5-5
+//   OPENAI_KEY     (secreta)  chave sk-...      → usa a OpenAI
+//   ANTHROPIC_KEY  (secreta)  chave sk-ant-...  → usa a Anthropic
+//   PROVEDOR       (opcional) "openai" ou "anthropic". Se ausente, usa o provedor
+//                  cuja chave estiver cadastrada (se houver as duas, Anthropic).
+//   ACESSO         (opcional, secreta) código que o professor digita no app;
+//                  se definida, sem ele a geração é recusada
+//   MODELO         (opcional) modelo do provedor escolhido
 
-const MODELO_PADRAO = 'claude-sonnet-5-5';
-const MAX_TOKENS = 8192;
+const PADROES = {
+  openai:    { modelo: 'gpt-6.1-sol',       chave: 'OPENAI_KEY',    nome: 'OpenAI' },
+  anthropic: { modelo: 'claude-sonnet-5-5', chave: 'ANTHROPIC_KEY', nome: 'Anthropic' },
+};
+const MAX_TOKENS = 8192;           // Anthropic
+const MAX_TOKENS_OPENAI = 16000;   // OpenAI: inclui tokens de raciocínio
 const MAX_ARQUIVOS = 5;
-const MAX_BYTES_TOTAL = 20 * 1024 * 1024;   // ~20 MB em base64 (limite da API: 32 MB)
+const MAX_BYTES_TOTAL = 20 * 1024 * 1024;   // ~20 MB em base64 (≈15 MB de arquivos)
 const MAX_TEXTO = 60000;                     // caracteres de instruções/observações
 const TIPOS_ARQUIVO = {
   'application/pdf': 'document',
@@ -26,40 +33,41 @@ Princípios:
 - Se as instruções já trazem critérios ou pontuações, respeite-os.
 - Descritores claros, observáveis, no estilo acadêmico brasileiro, humanizados (não robóticos), em linguagem de avaliação formativa: o que o aluno fez ou deixou de fazer.
 - Cada critério tem de 2 a 4 níveis, em ordem crescente de pontos. O menor nível vale 0 e descreve a não realização ou entrega insatisfatória.
-- Use SEMPRE a ferramenta registrar_rubrica para responder.`;
+- Se não for possível identificar a disciplina, deixe o campo disciplina como texto vazio.`;
 
-const FERRAMENTA = {
-  name: 'registrar_rubrica',
-  description: 'Registra a rubrica de avaliação proposta para a atividade.',
-  input_schema: {
-    type: 'object',
-    properties: {
-      analise: { type: 'string', description: 'Resumo em 2 a 4 frases do que a atividade pede (entregas, formato, formulários), para o professor conferir que a leitura foi correta.' },
-      titulo: { type: 'string' },
-      disciplina: { type: 'string', description: 'Disciplina ou UC, se identificável; senão vazio.' },
-      atividade: { type: 'string', description: 'Nome curto da atividade.' },
-      criterios: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            nome: { type: 'string' },
-            peso: { type: 'number', description: 'Peso percentual do critério; a soma de todos deve ser 100.' },
-            niveis: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: { pts: { type: 'number' }, desc: { type: 'string' } },
-                required: ['pts', 'desc'],
-              },
+// Schema compatível com o modo estrito da OpenAI (todos os campos obrigatórios,
+// additionalProperties:false) e com a ferramenta da Anthropic.
+const SCHEMA_RUBRICA = {
+  type: 'object',
+  properties: {
+    analise: { type: 'string', description: 'Resumo em 2 a 4 frases do que a atividade pede (entregas, formato, formulários), para o professor conferir que a leitura foi correta.' },
+    titulo: { type: 'string' },
+    disciplina: { type: 'string', description: 'Disciplina ou UC, se identificável; senão texto vazio.' },
+    atividade: { type: 'string', description: 'Nome curto da atividade.' },
+    criterios: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          nome: { type: 'string' },
+          peso: { type: 'number', description: 'Peso percentual do critério; a soma de todos deve ser 100.' },
+          niveis: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: { pts: { type: 'number' }, desc: { type: 'string' } },
+              required: ['pts', 'desc'],
+              additionalProperties: false,
             },
           },
-          required: ['nome', 'peso', 'niveis'],
         },
+        required: ['nome', 'peso', 'niveis'],
+        additionalProperties: false,
       },
     },
-    required: ['analise', 'titulo', 'atividade', 'criterios'],
   },
+  required: ['analise', 'titulo', 'disciplina', 'atividade', 'criterios'],
+  additionalProperties: false,
 };
 
 function json(obj, status = 200) {
@@ -83,6 +91,13 @@ function decodificarTexto(base64) {
   return new TextDecoder('utf-8').decode(bytes);
 }
 
+function escolherProvedor(env) {
+  const p = String(env.PROVEDOR || '').toLowerCase();
+  if (PADROES[p]) return p;
+  if (env.OPENAI_KEY && !env.ANTHROPIC_KEY) return 'openai';
+  return 'anthropic';
+}
+
 function montarPrompt({ instrucoes, observacoes, numCrit, modo, nomesArquivos }) {
   const regraPontos = modo === 'pct'
     ? '- Modo PESOS PERCENTUAIS: a soma dos pesos dos critérios deve ser exatamente 100. Os pontos de cada critério podem usar a escala que fizer sentido (ex.: 0, 1, 2, 3).'
@@ -95,6 +110,109 @@ function montarPrompt({ instrucoes, observacoes, numCrit, modo, nomesArquivos })
   ].filter(Boolean).join('\n\n');
 }
 
+// ---------- Anthropic ----------
+async function chamarAnthropic({ env, anexos, prompt }) {
+  const blocos = [];
+  for (const a of anexos) {
+    if (a.bloco === 'text') blocos.push({ type: 'text', text: a.texto });
+    else if (a.bloco === 'image') blocos.push({ type: 'image', source: { type: 'base64', media_type: a.tipo, data: a.dados } });
+    else blocos.push({ type: 'document', title: a.nome, source: { type: 'base64', media_type: a.tipo, data: a.dados } });
+  }
+  blocos.push({ type: 'text', text: prompt });
+
+  let resp;
+  try {
+    resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': env.ANTHROPIC_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: env.MODELO || PADROES.anthropic.modelo,
+        max_tokens: MAX_TOKENS,
+        system: SISTEMA,
+        tools: [{
+          name: 'registrar_rubrica',
+          description: 'Registra a rubrica de avaliação proposta para a atividade.',
+          input_schema: SCHEMA_RUBRICA,
+        }],
+        tool_choice: { type: 'tool', name: 'registrar_rubrica' },
+        messages: [{ role: 'user', content: blocos }],
+      }),
+    });
+  } catch (e) {
+    return { erro: 'Não foi possível contactar a Anthropic. Tente novamente.', status: 502 };
+  }
+  const dados = await resp.json().catch(() => ({}));
+  if (!resp.ok) return erroApi('Anthropic', resp, dados);
+
+  const uso = (dados.content || []).find(b => b.type === 'tool_use' && b.name === 'registrar_rubrica');
+  if (!uso || !Array.isArray(uso.input?.criterios)) {
+    const corte = dados.stop_reason === 'max_tokens';
+    return { erro: 'A IA não devolveu uma rubrica válida' + (corte ? ' (resposta cortada por tamanho; reduza o número de critérios)' : '') + '. Tente novamente.', status: 502 };
+  }
+  return { rubrica: uso.input };
+}
+
+// ---------- OpenAI (Responses API) ----------
+async function chamarOpenAI({ env, anexos, prompt }) {
+  const conteudo = [];
+  for (const a of anexos) {
+    if (a.bloco === 'text') conteudo.push({ type: 'input_text', text: a.texto });
+    else if (a.bloco === 'image') conteudo.push({ type: 'input_image', image_url: `data:${a.tipo};base64,${a.dados}` });
+    else conteudo.push({ type: 'input_file', filename: a.nome, file_data: `data:application/pdf;base64,${a.dados}` });
+  }
+  conteudo.push({ type: 'input_text', text: prompt });
+
+  let resp;
+  try {
+    resp = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${env.OPENAI_KEY}`,
+      },
+      body: JSON.stringify({
+        model: env.MODELO || PADROES.openai.modelo,
+        instructions: SISTEMA,
+        input: [{ role: 'user', content: conteudo }],
+        max_output_tokens: MAX_TOKENS_OPENAI,
+        store: false,
+        text: { format: { type: 'json_schema', name: 'rubrica', strict: true, schema: SCHEMA_RUBRICA } },
+      }),
+    });
+  } catch (e) {
+    return { erro: 'Não foi possível contactar a OpenAI. Tente novamente.', status: 502 };
+  }
+  const dados = await resp.json().catch(() => ({}));
+  if (!resp.ok) return erroApi('OpenAI', resp, dados);
+
+  if (dados.status === 'incomplete') {
+    const corte = dados.incomplete_details?.reason === 'max_output_tokens';
+    return { erro: 'A resposta da IA foi cortada' + (corte ? ' por tamanho; reduza o número de critérios ou de arquivos' : '') + '. Tente novamente.', status: 502 };
+  }
+  const partes = (dados.output || []).filter(o => o.type === 'message').flatMap(o => o.content || []);
+  if (partes.some(p => p.type === 'refusal')) {
+    return { erro: 'A IA recusou-se a processar este conteúdo. Revise as instruções ou os arquivos.', status: 422 };
+  }
+  const texto = partes.find(p => p.type === 'output_text')?.text;
+  let rubrica;
+  try { rubrica = JSON.parse(texto); } catch { rubrica = null; }
+  if (!rubrica || !Array.isArray(rubrica.criterios)) {
+    return { erro: 'A IA não devolveu uma rubrica válida. Tente novamente.', status: 502 };
+  }
+  return { rubrica };
+}
+
+function erroApi(nome, resp, dados) {
+  const msg = dados?.error?.message || `HTTP ${resp.status}`;
+  // não repassa detalhes de autenticação da chave ao público
+  if (resp.status === 401 || resp.status === 403) return { erro: `A chave da ${nome} configurada no servidor foi recusada.`, status: 502 };
+  return { erro: `Erro da API ${nome}: ${msg}`, status: resp.status === 429 ? 429 : 502 };
+}
+
 export async function onRequestPost({ request, env }) {
   // 1. Só aceita chamadas do próprio site
   const origem = request.headers.get('Origin');
@@ -102,8 +220,10 @@ export async function onRequestPost({ request, env }) {
     return json({ erro: 'Origem não autorizada.' }, 403);
   }
 
-  if (!env.ANTHROPIC_KEY) {
-    return json({ erro: 'Servidor sem chave configurada. Defina ANTHROPIC_KEY nas variáveis do projeto no Cloudflare Pages.' }, 500);
+  const provedor = escolherProvedor(env);
+  const cfg = PADROES[provedor];
+  if (!env[cfg.chave]) {
+    return json({ erro: `Servidor sem chave configurada. Defina ${cfg.chave} nas variáveis do projeto no Cloudflare Pages.` }, 500);
   }
 
   // 2. Código de acesso (opcional)
@@ -130,63 +250,29 @@ export async function onRequestPost({ request, env }) {
   if (arquivos.length > MAX_ARQUIVOS) return json({ erro: `Envie no máximo ${MAX_ARQUIVOS} arquivos.` }, 400);
   if (!instrucoes && !arquivos.length) return json({ erro: 'Informe as instruções da atividade ou anexe um arquivo.' }, 400);
 
-  // 4. Monta os blocos de conteúdo
-  const blocos = [];
-  const nomes = [];
+  // 4. Valida e normaliza os anexos (independente do provedor)
+  const anexos = [];
   let total = 0;
   for (const a of arquivos) {
     const nome = String(a.nome || 'arquivo').slice(0, 200);
-    const tipoBloco = TIPOS_ARQUIVO[a.tipo];
+    const bloco = TIPOS_ARQUIVO[a.tipo];
     const dados = String(a.dados || '');
-    if (!tipoBloco) return json({ erro: `Tipo de arquivo não suportado: ${nome}. Use PDF, imagem (PNG/JPG/WebP) ou texto.` }, 400);
+    if (!bloco) return json({ erro: `Tipo de arquivo não suportado: ${nome}. Use PDF, imagem (PNG/JPG/WebP) ou texto.` }, 400);
     if (!/^[A-Za-z0-9+/]+=*$/.test(dados)) return json({ erro: `Arquivo corrompido: ${nome}.` }, 400);
     total += dados.length;
     if (total > MAX_BYTES_TOTAL) return json({ erro: 'Arquivos grandes demais (máximo ~15 MB no total).' }, 413);
-    nomes.push(nome);
-    if (tipoBloco === 'text') {
-      blocos.push({ type: 'text', text: `--- Arquivo: ${nome} ---\n${decodificarTexto(dados).slice(0, MAX_TEXTO)}` });
+    if (bloco === 'text') {
+      anexos.push({ nome, bloco, texto: `--- Arquivo: ${nome} ---\n${decodificarTexto(dados).slice(0, MAX_TEXTO)}` });
     } else {
-      blocos.push({ type: tipoBloco, source: { type: 'base64', media_type: a.tipo, data: dados } });
-      if (tipoBloco === 'document') blocos[blocos.length - 1].title = nome;
+      anexos.push({ nome, bloco, tipo: a.tipo, dados });
     }
   }
-  blocos.push({ type: 'text', text: montarPrompt({ instrucoes, observacoes, numCrit, modo, nomesArquivos: nomes }) });
+  const prompt = montarPrompt({ instrucoes, observacoes, numCrit, modo, nomesArquivos: anexos.map(a => a.nome) });
 
-  // 5. Chama a Anthropic
-  let resp;
-  try {
-    resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': env.ANTHROPIC_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: env.MODELO || MODELO_PADRAO,
-        max_tokens: MAX_TOKENS,
-        system: SISTEMA,
-        tools: [FERRAMENTA],
-        tool_choice: { type: 'tool', name: FERRAMENTA.name },
-        messages: [{ role: 'user', content: blocos }],
-      }),
-    });
-  } catch (e) {
-    return json({ erro: 'Não foi possível contactar a Anthropic. Tente novamente.' }, 502);
-  }
-
-  const dados = await resp.json().catch(() => ({}));
-  if (!resp.ok) {
-    const msg = dados?.error?.message || `HTTP ${resp.status}`;
-    // não repassa detalhes de autenticação da chave ao público
-    if (resp.status === 401 || resp.status === 403) return json({ erro: 'A chave da Anthropic configurada no servidor foi recusada.' }, 502);
-    return json({ erro: `Erro da API Anthropic: ${msg}` }, resp.status === 429 ? 429 : 502);
-  }
-
-  const uso = (dados.content || []).find(b => b.type === 'tool_use' && b.name === FERRAMENTA.name);
-  if (!uso || !Array.isArray(uso.input?.criterios)) {
-    const motivo = dados.stop_reason === 'max_tokens' ? ' (resposta cortada por tamanho; reduza o número de critérios)' : '';
-    return json({ erro: 'A IA não devolveu uma rubrica válida' + motivo + '. Tente novamente.' }, 502);
-  }
-  return json({ rubrica: uso.input });
+  // 5. Chama o provedor
+  const r = provedor === 'openai'
+    ? await chamarOpenAI({ env, anexos, prompt })
+    : await chamarAnthropic({ env, anexos, prompt });
+  if (r.erro) return json({ erro: r.erro }, r.status);
+  return json({ rubrica: r.rubrica });
 }

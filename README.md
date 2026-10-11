@@ -101,7 +101,7 @@ php -S localhost:8080
 >
 > A **geração com IA** depende da função `functions/api/gerar.js`, que só roda no Cloudflare Pages.
 > Para testá-la localmente: `npx wrangler pages dev .` com um arquivo `.dev.vars` contendo `ANTHROPIC_KEY=sk-ant-...`
-> (o `.dev.vars` está no `.gitignore`).
+> (o `.dev.vars` está no `.gitignore`). Use `OPENAI_KEY=sk-...` se for testar com a OpenAI.
 
 ---
 
@@ -116,17 +116,19 @@ Na tela **✨ Gerar com IA** o professor:
 
 A IA lê tudo, mostra um resumo do que entendeu da atividade e propõe critérios e descritores, que podem ser editados antes de salvar.
 
-**Como funciona por trás:** o navegador envia os dados para `/api/gerar` (Cloudflare Pages Function, mesmo domínio do app). A função chama a API da Anthropic com a chave guardada **somente no servidor**; nenhuma chave fica no navegador.
+**Como funciona por trás:** o navegador envia os dados para `/api/gerar` (Cloudflare Pages Function, mesmo domínio do app). A função chama a API da **OpenAI** ou da **Anthropic** com a chave guardada **somente no servidor**; nenhuma chave fica no navegador.
 
-**Configuração (Cloudflare Pages → projeto → Settings → Variables and Secrets):**
+**Configuração (Cloudflare Pages → projeto → Settings → Variables and Secrets, ambiente Produção):**
 
 | Variável | Obrigatória | Para quê |
 |---|---|---|
-| `ANTHROPIC_KEY` | sim (secreta) | Chave `sk-ant-...` da Anthropic |
+| `OPENAI_KEY` | uma das duas chaves (secreta) | Chave `sk-...` da OpenAI. Usa a Responses API (PDF e imagens suportados) |
+| `ANTHROPIC_KEY` | uma das duas chaves (secreta) | Chave `sk-ant-...` da Anthropic |
+| `PROVEDOR` | não | `openai` ou `anthropic`. Se ausente, usa o provedor cuja chave estiver cadastrada (se houver as duas, Anthropic) |
 | `ACESSO` | recomendada (secreta) | Código que o professor digita no app na primeira vez. Sem ele, qualquer pessoa com o link poderia gerar rubricas usando a sua chave |
-| `MODELO` | não | Modelo da Anthropic. Padrão: `claude-sonnet-5-5` |
+| `MODELO` | não | Modelo do provedor escolhido. Padrões: `gpt-6.1-sol` (OpenAI) e `claude-sonnet-5-5` (Anthropic) |
 
-Depois de criar/alterar variáveis, faça um novo deploy (ou *Retry deployment*). Vale também definir um limite de gasto mensal no console da Anthropic.
+Depois de criar/alterar variáveis, faça um novo deploy (ou *Retry deployment*). Vale também definir um limite de gasto mensal no console do provedor.
 
 ---
 
