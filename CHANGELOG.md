@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.0] — 2026-10-11
+
+### Adicionado
+- **Exportar rubricas em JSON**: todas (tela inicial), ou uma (botão **⬇ JSON** no card e **⬇ Exportar** dentro da rubrica). O arquivo não leva dados de alunos (aluno, turma, data).
+- **Importar rubricas de JSON** (um ou vários arquivos), sempre como cópias novas. Aceita o arquivo exportado pelo app, uma lista ou uma rubrica avulsa. Validação campo a campo, limites de tamanho e relatório do que foi importado ou ignorado.
+- `docs/FORMATO_JSON.md`; `exemplos/` agora no formato do app e prontos para importar.
+
+### Alterado
+- `dbSave()` informa se conseguiu gravar; a importação não aceita rubricas quando o armazenamento está cheio ou bloqueado.
+- Botões do topo da rubrica não saem mais na impressão.
+
 ## [1.1.0] — 2026-10-11
 
 ### Adicionado

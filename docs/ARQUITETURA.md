@@ -92,7 +92,11 @@ Os templates (`TEMPLATES`) usam exatamente esta estrutura. Ver [ADICIONAR_RUBRIC
 | `inovalab-rubricas-v5` | `{ db: [...rubricas], nextId }` |
 | `inovalab-rubricas-acesso` | Código de acesso à IA digitado pelo professor |
 
-Toda leitura e escrita é protegida com `try/catch`: se o navegador bloquear o armazenamento, o app continua funcionando sem salvar.
+Toda leitura e escrita é protegida com `try/catch`: se o navegador bloquear o armazenamento, o app continua funcionando sem salvar. `dbSave()` devolve `true`/`false`, e a importação usa isso para não aceitar rubricas que não puderam ser guardadas.
+
+### Exportar / importar (JSON)
+
+`exportarRubricas()` grava `{ formato, versao, exportadoEm, rubricas }` (só o modelo: sem `id`, aluno, turma e data) e baixa o arquivo. `importarArquivos()` lê os arquivos, valida e **copia campo a campo** cada rubrica (`normalizarRubrica`), atribui novos ids e acrescenta ao `DB` como cópias. Formato, limites e segurança: [FORMATO_JSON.md](FORMATO_JSON.md).
 
 > Versões antigas guardavam a chave da Anthropic em `anthropic-api-key`. O app apaga essa entrada ao carregar.
 
@@ -181,5 +185,5 @@ CSS Grid e Flexbox com ajustes para telas estreitas (`@media (max-width: 480px)`
 - Dois níveis com a mesma pontuação no mesmo critério ficam ambos marcados, porque a seleção é por pontos.
 - Níveis sem descrição são escondidos na aba Aplicar, mas continuam contando no máximo do critério.
 - Trocar o modo (abs/pct) limpa as seleções e **não** converte pontos em pesos: o peso é o campo "Peso %" de cada critério.
-- Os arquivos de `exemplos/` são referência de estrutura; o app ainda não importa JSON.
+- Não há sincronização entre dispositivos: o backup e a troca de rubricas são manuais, por exportação/importação de JSON ([FORMATO_JSON.md](FORMATO_JSON.md)).
 - A geração com IA só funciona no Cloudflare Pages (precisa da função de servidor).

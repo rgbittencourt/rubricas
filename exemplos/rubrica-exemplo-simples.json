@@ -1,57 +1,80 @@
 {
-  "_comentario": "Exemplo de estrutura de rubrica. Referência para integração futura com importação/exportação JSON.",
-  "_versao": "1.0",
-  "titulo": "Seminário EaD — Exemplo Simples",
-  "disciplina": "TEDPRO",
-  "atividade": "Apresentação de Seminário",
-  "turma": "2024/2",
-  "data": "2024-11-15",
-  "modo": "abs",
-  "niveis": [
-    { "nome": "Não realizado",      "pontos": 0 },
-    { "nome": "Em desenvolvimento", "pontos": 1 },
-    { "nome": "Satisfatório",       "pontos": 2 },
-    { "nome": "Excelente",          "pontos": 3 }
-  ],
-  "criterios": [
+  "formato": "inovalab-rubricas",
+  "versao": 1,
+  "rubricas": [
     {
-      "nome": "Qualidade do conteúdo",
-      "maxPontos": 3,
-      "peso": 33.4,
-      "descritores": [
-        "Não apresentou ou o conteúdo é inadequado.",
-        "Conteúdo superficial, com lacunas importantes.",
-        "Conteúdo adequado, com pequenas lacunas.",
-        "Conteúdo completo, preciso e bem fundamentado."
-      ]
-    },
-    {
-      "nome": "Clareza da apresentação",
-      "maxPontos": 3,
-      "peso": 33.3,
-      "descritores": [
-        "Não apresentou.",
-        "Apresentação confusa, difícil de acompanhar.",
-        "Apresentação clara na maior parte.",
-        "Apresentação muito clara, organizada e fluente."
-      ]
-    },
-    {
-      "nome": "Uso de recursos visuais",
-      "maxPontos": 3,
-      "peso": 33.3,
-      "descritores": [
-        "Sem recursos visuais.",
-        "Recursos visuais inadequados ou de baixa qualidade.",
-        "Recursos visuais adequados.",
-        "Recursos visuais excelentes, didáticos e bem elaborados."
+      "titulo": "Seminário EaD — exemplo simples",
+      "disciplina": "TEDPRO",
+      "atividade": "Apresentação de seminário",
+      "modo": "abs",
+      "criterios": [
+        {
+          "nome": "Qualidade do conteúdo",
+          "peso": 30,
+          "niveis": [
+            {
+              "pts": 0,
+              "desc": "Não apresentou ou o conteúdo é inadequado."
+            },
+            {
+              "pts": 1,
+              "desc": "Conteúdo superficial, com lacunas importantes."
+            },
+            {
+              "pts": 2,
+              "desc": "Conteúdo adequado, com pequenas lacunas."
+            },
+            {
+              "pts": 3,
+              "desc": "Conteúdo completo, preciso e bem fundamentado."
+            }
+          ]
+        },
+        {
+          "nome": "Clareza da apresentação",
+          "peso": 40,
+          "niveis": [
+            {
+              "pts": 0,
+              "desc": "Não apresentou."
+            },
+            {
+              "pts": 2,
+              "desc": "Apresentação confusa, difícil de acompanhar."
+            },
+            {
+              "pts": 3,
+              "desc": "Apresentação clara na maior parte."
+            },
+            {
+              "pts": 4,
+              "desc": "Muito clara, organizada e fluente."
+            }
+          ]
+        },
+        {
+          "nome": "Uso de recursos visuais",
+          "peso": 30,
+          "niveis": [
+            {
+              "pts": 0,
+              "desc": "Sem recursos visuais."
+            },
+            {
+              "pts": 1,
+              "desc": "Recursos inadequados ou de baixa qualidade."
+            },
+            {
+              "pts": 2,
+              "desc": "Recursos adequados."
+            },
+            {
+              "pts": 3,
+              "desc": "Recursos excelentes, didáticos e bem elaborados."
+            }
+          ]
+        }
       ]
     }
-  ],
-  "_meta": {
-    "somaMaxPontos": 9,
-    "notaMaxima": 10.0,
-    "notaMinima": 0.0,
-    "validado": true
-  }
+  ]
 }

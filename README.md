@@ -22,6 +22,7 @@ O **Gerador de Rubricas** é uma Progressive Web App (PWA) que permite a profess
   - **Pontos absolutos** — soma direta (ideal para rubricas com escala própria)
   - **Pesos percentuais** — ponderação por critério (ideal para critérios de importância variável)
 - **Imprimir / salvar em PDF** a rubrica completa
+- **Exportar e importar rubricas em JSON** (backup e troca entre computadores ou colegas, sem dados de alunos)
 - **Garantia matemática**: máximo sempre = 10,00 · mínimo sempre = 0,00
 - **Instalar como app** no Android, iOS e desktop (sem loja de aplicativos)
 - **Funcionar offline** após a primeira visita
@@ -157,11 +158,12 @@ rubricas/
 ├── docs/
 │   ├── ARQUITETURA.md  ← Como o código está organizado
 │   ├── CONFIGURAR_IA.md ← Chave, variáveis do Cloudflare e solução de problemas da IA
+│   ├── FORMATO_JSON.md ← Exportar/importar rubricas: uso, formato do arquivo e limites
 │   ├── FORMULAS.md     ← Matemática das fórmulas de nota
 │   └── ADICIONAR_RUBRICA.md ← Como adicionar novos templates
 ├── exemplos/
-│   ├── rubrica-exemplo-simples.json   ← Estrutura de referência (importação ainda não implementada)
-│   └── rubrica-p4-completa.json       ← Rubrica P4 completa, no mesmo formato de referência
+│   ├── rubrica-exemplo-simples.json   ← Seminário com 3 critérios (pronto para importar)
+│   └── rubrica-p4-completa.json       ← Rubrica P4 completa (pronta para importar)
 ├── scripts/
 │   └── validar_rubricas.py ← Confere a matemática: máx = 10,00 e mín = 0,00 nos dois modos
 └── LICENSE             ← MIT
@@ -319,7 +321,7 @@ server {
 - [x] Geração de rubrica com IA a partir das instruções da atividade, com anexos (PDF, imagens, texto)
 - [x] Chave de API somente no servidor (OpenAI ou Anthropic) e código de acesso
 - [ ] Salvar **avaliações por aluno** (histórico, nota por critério) e exportar em CSV
-- [ ] Importação/exportação de rubrica em JSON
+- [x] Importação/exportação de rubricas em JSON
 - [ ] Exportação em DOCX (relatório de avaliação)
 - [ ] Mensagem de erro neutra quando nenhuma chave está configurada
 - [ ] Backend Python + SQLite (salvar no servidor, multiusuário)

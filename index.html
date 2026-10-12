@@ -43,6 +43,14 @@ main{flex:1;padding:16px;max-width:960px;width:100%;margin:0 auto}
 .btn-ia:hover{opacity:.9}
 .btn-sm{padding:6px 12px;font-size:.82rem}
 .acoes-home{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.msg-home{margin-top:12px;padding:10px 14px;border-radius:8px;font-size:.85rem;display:flex;gap:10px;align-items:flex-start}
+.msg-home .msg-corpo{flex:1;min-width:0;overflow-wrap:anywhere}
+.msg-home ul{margin:6px 0 0 18px}
+.msg-home button{background:none;border:none;cursor:pointer;font-size:1rem;color:inherit;opacity:.7}
+.msg-home.ok{background:#e6f4ea;border:1px solid #a8d5b5;color:#1e5b2e}
+.msg-home.aviso{background:#fff8e1;border:1px solid #ffe082;color:#5a4000}
+.msg-home.erro{background:#fce8ea;border:1px solid #f5b5bb;color:#8a1f2b}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1a3a5c;color:#fff;padding:10px 16px;border-radius:8px;font-size:.85rem;max-width:90vw;z-index:50;box-shadow:0 4px 16px rgba(0,0,0,.25)}
 
 /* HOME GRID */
 #home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:14px}
@@ -177,7 +185,7 @@ footer a{color:var(--azul2)}
 
 /* PRINT */
 @media print{
-  #hdr,#banner-instalar,.tabs,.acoes-home,.nota-box,.modo-row,.card-acoes,.modal-overlay,footer,.ia-box,#painel-aplicar .btn{display:none!important}
+  #hdr,#banner-instalar,.barra-topo,#toast,.tabs,.acoes-home,.nota-box,.modo-row,.card-acoes,.modal-overlay,footer,.ia-box,#painel-aplicar .btn{display:none!important}
   #painel-preview{display:block!important}
   body{background:#fff}
 }
@@ -224,7 +232,11 @@ footer a{color:var(--azul2)}
     <button class="btn btn-ia" onclick="abrirTelaIA()">✨ Gerar com IA</button>
     <button class="btn btn-secundario" onclick="abrirModalTemplate()">📋 Usar template</button>
     <button class="btn btn-primario" onclick="novaRubrica()">＋ Nova em branco</button>
+    <button class="btn btn-secundario" onclick="document.getElementById('arq-importar').click()" title="Importar rubricas de um arquivo .json">⬆ Importar</button>
+    <button class="btn btn-secundario" onclick="exportarRubricas()" title="Baixar todas as rubricas em um arquivo .json">⬇ Exportar todas</button>
+    <input type="file" id="arq-importar" class="d-none" accept=".json,application/json" multiple onchange="importarArquivos(this.files);this.value=''">
   </div>
+  <div id="home-msg" class="d-none" role="status"></div>
   <div id="home-grid"></div>
 </div>
 
@@ -317,9 +329,10 @@ footer a{color:var(--azul2)}
 
 <!-- ===== TELA RUBRICA ===== -->
 <div id="tela-rubrica" class="d-none">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+  <div class="barra-topo" style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
     <button class="btn btn-sm btn-secundario" onclick="voltarHome()">← Voltar</button>
     <h2 id="rubrica-titulo-hdr" style="color:var(--azul);font-size:1.05rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Rubrica</h2>
+    <button class="btn btn-sm btn-secundario" onclick="exportarRubricas([rubrActual])" title="Exportar esta rubrica (.json)">⬇ Exportar</button>
     <button class="btn btn-sm btn-perigo" onclick="confirmarDel()">🗑 Excluir</button>
   </div>
 
@@ -565,7 +578,7 @@ const LS_KEY = 'inovalab-rubricas-v5';
 let DB = [], nextId = 1, rubrActual = null, modoAtual = 'abs', selecoes = {};
 
 function dbSave() {
-  try { localStorage.setItem(LS_KEY, JSON.stringify({db:DB,nextId})); } catch(e){}
+  try { localStorage.setItem(LS_KEY, JSON.stringify({db:DB,nextId})); return true; } catch(e){ return false; }
 }
 function dbLoad() {
   try {
@@ -690,6 +703,7 @@ function renderHome() {
       <div class="card-acoes" onclick="event.stopPropagation()">
         <button onclick="abrirRubrica(${r.id})">▶ Abrir</button>
         <button onclick="duplicar(${r.id})">⧉ Duplic.</button>
+        <button onclick="exportarRubricas([${r.id}])" title="Exportar esta rubrica (.json)">⬇ JSON</button>
         <button onclick="rubrActual=${r.id};document.getElementById('modal-del').classList.remove('d-none')">🗑</button>
       </div>
     </div>`;
@@ -1152,6 +1166,144 @@ function iaSalvarRubrica(){
 }
 
 // =====================
+// EXPORTAR / IMPORTAR (JSON)
+// =====================
+const FORMATO_JSON = 'inovalab-rubricas';
+const FORMATO_VERSAO = 1;
+const LIM = { arquivo: 2*1024*1024, rubricas: 200, criterios: 50, niveis: 20, texto: 5000, titulo: 200, numero: 1e6 };
+
+// Só o modelo da rubrica: sem aluno, turma ou data (dados de uma aplicação, não do modelo).
+function rubricaParaJSON(r) {
+  return {
+    titulo: r.titulo||'', disciplina: r.disciplina||'', atividade: r.atividade||'',
+    modo: r.modo==='pct' ? 'pct' : 'abs',
+    criterios: (r.criterios||[]).map(c=>({
+      nome: c.nome||'', peso: Number(c.peso)||0,
+      niveis: (c.niveis||[]).map(n=>({ pts: Number(n.pts)||0, desc: n.desc||'' }))
+    }))
+  };
+}
+function slugArquivo(t) {
+  return String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40) || 'rubrica';
+}
+function baixarJSON(obj, nome) {
+  const blob = new Blob([JSON.stringify(obj,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nome;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+}
+let toastTimer = null;
+function toast(texto) {
+  const el = document.getElementById('toast');
+  el.textContent = texto; el.classList.remove('d-none');
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>el.classList.add('d-none'), 4500);
+}
+function exportarRubricas(ids) {
+  const lista = ids ? ids.map(getRubrica).filter(Boolean) : DB;
+  if (!lista.length) { toast('Não há rubricas para exportar.'); return; }
+  const hoje = new Date().toISOString().slice(0,10);
+  const nome = lista.length===1 ? `rubrica-${slugArquivo(lista[0].titulo)}-${hoje}.json` : `rubricas-inovalab-${hoje}.json`;
+  baixarJSON({ formato: FORMATO_JSON, versao: FORMATO_VERSAO, exportadoEm: new Date().toISOString(),
+               rubricas: lista.map(rubricaParaJSON) }, nome);
+  toast(`⬇ ${lista.length} rubrica${lista.length!==1?'s':''} exportada${lista.length!==1?'s':''}: ${nome}`);
+}
+
+function lerTexto(v, max) { return typeof v==='string' ? v.slice(0,max) : (typeof v==='number' ? String(v) : ''); }
+function lerNumero(v) {
+  const n = typeof v==='number' ? v : (typeof v==='string' && v.trim()!=='' ? Number(v.replace(',','.')) : NaN);
+  return Number.isFinite(n) ? n : null;
+}
+// Valida e copia campo a campo (nunca reaproveita o objeto vindo do arquivo). Retorna {rubrica} ou {erro}.
+function normalizarRubrica(o) {
+  if (!o || typeof o!=='object' || Array.isArray(o)) return {erro:'o item não é uma rubrica'};
+  if (!Array.isArray(o.criterios) || !o.criterios.length) return {erro:'não tem critérios'};
+  if (o.criterios.length > LIM.criterios) return {erro:`tem mais de ${LIM.criterios} critérios`};
+  const t = Date.now(), criterios = [];
+  for (let i=0; i<o.criterios.length; i++) {
+    const c = o.criterios[i], k = `critério ${i+1}`;
+    if (!c || typeof c!=='object') return {erro:`${k} inválido`};
+    if (!Array.isArray(c.niveis) || !c.niveis.length) return {erro:`${k} sem níveis`};
+    if (c.niveis.length > LIM.niveis) return {erro:`${k} tem mais de ${LIM.niveis} níveis`};
+    let peso = null;
+    if (c.peso!==undefined && c.peso!==null) {
+      peso = lerNumero(c.peso);
+      if (peso===null || peso<0 || peso>LIM.numero) return {erro:`${k}: peso inválido`};
+    }
+    const niveis = [];
+    for (let j=0; j<c.niveis.length; j++) {
+      const n = c.niveis[j];
+      const pts = n && typeof n==='object' ? lerNumero(n.pts) : null;
+      if (pts===null || pts<0 || pts>LIM.numero) return {erro:`${k}, nível ${j+1}: pontos inválidos`};
+      niveis.push({ pts, desc: lerTexto(n.desc, LIM.texto) });
+    }
+    niveis.sort((a,b)=>a.pts-b.pts);
+    criterios.push({
+      id: 'c'+t+'_'+i,
+      nome: lerTexto(c.nome, LIM.titulo) || `Critério ${i+1}`,
+      peso: peso===null ? Math.round(1000/o.criterios.length)/10 : peso,
+      niveis
+    });
+  }
+  return { rubrica: {
+    titulo: lerTexto(o.titulo, LIM.titulo) || 'Rubrica importada',
+    disciplina: lerTexto(o.disciplina, LIM.titulo), atividade: lerTexto(o.atividade, LIM.titulo),
+    turma:'', aluno:'', data:'', modo: o.modo==='pct' ? 'pct' : 'abs', criterios
+  }};
+}
+// Aceita o arquivo exportado pelo app, uma lista de rubricas ou uma rubrica avulsa.
+function extrairRubricas(d) {
+  if (Array.isArray(d)) return {lista:d};
+  if (d && typeof d==='object') {
+    if (d.formato!==undefined && d.formato!==FORMATO_JSON) return {erro:'o arquivo não é de rubricas do INOVALAB'};
+    if (typeof d.versao==='number' && d.versao>FORMATO_VERSAO) return {erro:'o arquivo foi criado por uma versão mais nova do app'};
+    if (Array.isArray(d.rubricas)) return {lista:d.rubricas};
+    if (Array.isArray(d.criterios)) return {lista:[d]};
+  }
+  return {erro:'formato não reconhecido'};
+}
+function mostrarMsgHome(tipo, titulo, itens) {
+  const el = document.getElementById('home-msg');
+  el.className = 'msg-home ' + tipo;
+  el.innerHTML = '<div class="msg-corpo"><strong>'+esc(titulo)+'</strong>'
+    + (itens&&itens.length ? '<ul>'+itens.map(i=>'<li>'+esc(i)+'</li>').join('')+'</ul>' : '')
+    + '</div><button onclick="document.getElementById(\'home-msg\').classList.add(\'d-none\')" title="Fechar">✕</button>';
+}
+async function importarArquivos(arquivos) {
+  const lista = Array.from(arquivos||[]);
+  if (!lista.length) return;
+  dbLoad();
+  const antesLen = DB.length, antesId = nextId, problemas = [];
+  let importadas = 0;
+  for (const f of lista) {
+    if (f.size > LIM.arquivo) { problemas.push(`${f.name}: arquivo maior que ${LIM.arquivo/1048576} MB`); continue; }
+    let dados;
+    try { dados = JSON.parse(await f.text()); }
+    catch(e) { problemas.push(`${f.name}: não é um arquivo JSON válido`); continue; }
+    const ext = extrairRubricas(dados);
+    if (ext.erro) { problemas.push(`${f.name}: ${ext.erro}`); continue; }
+    if (ext.lista.length > LIM.rubricas) { problemas.push(`${f.name}: mais de ${LIM.rubricas} rubricas`); continue; }
+    ext.lista.forEach((item,i)=>{
+      const r = normalizarRubrica(item);
+      if (r.erro) { problemas.push(`${f.name}, rubrica ${i+1}: ${r.erro}`); return; }
+      r.rubrica.id = nextId++;
+      DB.push(r.rubrica); importadas++;
+    });
+  }
+  if (importadas && !dbSave()) {
+    DB.length = antesLen; nextId = antesId;
+    mostrarMsgHome('erro','Não foi possível salvar as rubricas importadas.',['O armazenamento do navegador está cheio ou bloqueado. Exporte e apague rubricas antigas, ou libere espaço, e tente de novo.']);
+    return;
+  }
+  renderHome();
+  if (importadas && !problemas.length) mostrarMsgHome('ok', `✅ ${importadas} rubrica${importadas!==1?'s':''} importada${importadas!==1?'s':''}.`);
+  else if (importadas) mostrarMsgHome('aviso', `⚠️ ${importadas} rubrica${importadas!==1?'s':''} importada${importadas!==1?'s':''}; alguns itens foram ignorados:`, problemas);
+  else mostrarMsgHome('erro', 'Nada foi importado.', problemas);
+}
+
+// =====================
 // PWA
 // =====================
 let deferredPrompt;
@@ -1174,5 +1326,6 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 // =====================
 renderHome();
 </script>
+<div id="toast" class="d-none" role="status"></div>
 </body>
 </html>
