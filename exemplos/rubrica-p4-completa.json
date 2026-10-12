@@ -1,105 +1,130 @@
 {
-  "_comentario": "Rubrica P4 completa — Portfólio / Relato Final — TEDPRO/IFSC",
-  "_versao": "1.0",
-  "titulo": "P4 — Portfólio / Relato Final",
-  "disciplina": "TEDPRO",
-  "atividade": "Portfólio de Atividades",
-  "turma": "",
-  "data": "",
-  "modo": "abs",
-  "niveis": [
-    { "nome": "Não realizado", "pontos": 0   },
-    { "nome": "Parcial",       "pontos": 0.5 },
-    { "nome": "Básico",        "pontos": 1   },
-    { "nome": "Detalhado",     "pontos": 2   },
-    { "nome": "Completo",      "pontos": 3   },
-    { "nome": "Excelente",     "pontos": 4   }
-  ],
-  "criterios": [
+  "formato": "inovalab-rubricas",
+  "versao": 1,
+  "rubricas": [
     {
-      "nome": "Sobre o Desafio",
-      "maxPontos": 1,
-      "peso": 10,
-      "descritores": [
-        "Não fez ou deixou de apresentar MAIS DE UMA: desafio em forma de pergunta, público-alvo, motivações ou busca de informações.",
-        "Deixou de apresentar UMA das informações solicitadas.",
-        "Apresentou o desafio em forma de pergunta, público-alvo, motivações e relatou claramente como buscou informações.",
-        "",
-        "",
-        ""
-      ]
-    },
-    {
-      "nome": "Sobre os recursos elaborados (P1–P4)",
-      "maxPontos": 4,
-      "peso": 40,
-      "descritores": [
-        "Não fez ou não relatou a produção de cada recurso.",
-        "Deixou de apresentar/nomear um ou mais recursos ou de relatar dificuldades, aprendizagens e contribuições.",
-        "",
-        "",
-        "Nomeou todos (P1–P4) e relatou com poucos detalhes sobre dificuldades, aprendizagens e contribuições.",
-        "Nomeou e relatou de forma clara e coerente todos os recursos: dificuldades, aprendizagens e contribuições."
-      ]
-    },
-    {
-      "nome": "Sobre a aplicação dos recursos e solução do desafio",
-      "maxPontos": 2,
-      "peso": 20,
-      "descritores": [
-        "Não apresentou informações sobre aplicação com o público-alvo e/ou não apresentou resultados.",
-        "Informações que não permitem identificar se o recurso foi realmente aplicado/testado.",
-        "Informações consistentes sobre aplicação com público-alvo e resultados alcançados (ou propostas de ajuste).",
-        "",
-        "",
-        ""
-      ]
-    },
-    {
-      "nome": "Sobre as competências adquiridas",
-      "maxPontos": 1,
-      "peso": 10,
-      "descritores": [
-        "Não preencheu a tabela ou está incompleta e sem parágrafo sobre competências.",
-        "Tabela incompleta ou parágrafo sem clareza sobre competências prévias e desenvolvidas.",
-        "Tabela completa (competências por recurso + ferramentas) e parágrafo sobre competências prévias e desenvolvidas.",
-        "",
-        "",
-        ""
-      ]
-    },
-    {
-      "nome": "Continuidade da pesquisa e aprendizagem",
-      "maxPontos": 1,
-      "peso": 10,
-      "descritores": [
-        "Não apresentou metodologia de continuidade e/ou não relatou o mais significativo.",
-        "Metodologia inadequada ou sem explicação do porquê.",
-        "Metodologia adequada com justificativa e relato do que foi mais significativo para a aprendizagem.",
-        "",
-        "",
-        ""
-      ]
-    },
-    {
-      "nome": "Transparência no uso de IA",
-      "maxPontos": 1,
-      "peso": 10,
-      "descritores": [
-        "Declara ter usado, mas não descreve como.",
-        "Declara ter usado, mas resposta incompleta ou superficial.",
-        "Declara NÃO ter usado; OU declara ter usado e respondeu tudo: ferramentas, para quê, como interagiu e qual foi o resultado.",
-        "",
-        "",
-        ""
+      "titulo": "P4 – Portfólio / Relato Final",
+      "disciplina": "TEDPRO",
+      "atividade": "P4 – Portfólio e Relato Final",
+      "modo": "abs",
+      "criterios": [
+        {
+          "nome": "Sobre o Desafio",
+          "peso": 10,
+          "niveis": [
+            {
+              "pts": 0,
+              "desc": "Não fez ou deixou de apresentar MAIS DE UMA dessas informações: desafio em formato de pergunta, público-alvo, motivações para escolha do desafio ou como buscou informações para escolhê-lo."
+            },
+            {
+              "pts": 0.5,
+              "desc": "Deixou de apresentar uma das informações: desafio em formato de pergunta, público-alvo, motivações para escolha do desafio ou como buscou informações."
+            },
+            {
+              "pts": 1,
+              "desc": "Apresentou o desafio em formato de pergunta, o público-alvo, as motivações para escolha e relatou de forma clara como buscou informações para escolher o desafio e os recursos a serem desenvolvidos."
+            }
+          ]
+        },
+        {
+          "nome": "Sobre os recursos elaborados",
+          "peso": 40,
+          "niveis": [
+            {
+              "pts": 0,
+              "desc": "Não fez ou não relatou sobre a produção de nenhum dos recursos desenvolvidos."
+            },
+            {
+              "pts": 1,
+              "desc": "Deixou de apresentar informações e nomear um ou mais dos recursos (P1, P2, P3 e P4), ou deixou de relatar sobre a produção de um ou mais recursos."
+            },
+            {
+              "pts": 2,
+              "desc": "Apresentou informações e nomeou todos os recursos (P1, P2, P3 e P4), mas deixou de relatar sobre a produção de um ou mais deles."
+            },
+            {
+              "pts": 3,
+              "desc": "Apresentou informações sobre todos os recursos desenvolvidos, relatou sobre a produção de cada um, mas com poucos detalhes sobre dificuldades, aprendizagens e contribuições."
+            },
+            {
+              "pts": 4,
+              "desc": "Apresentou e nomeou todos os recursos (P1, P2, P3 e P4), relatando de forma clara e coerente sobre a produção de cada um, dificuldades, aprendizagens e contribuições do recurso para solução do desafio."
+            }
+          ]
+        },
+        {
+          "nome": "Sobre a aplicação dos recursos e solução do desafio",
+          "peso": 20,
+          "niveis": [
+            {
+              "pts": 0,
+              "desc": "Não apresentou informações sobre a aplicação dos recursos elaborados na P2 e P3 com o público-alvo e/ou não apresentou os resultados alcançados para a solução do desafio."
+            },
+            {
+              "pts": 1,
+              "desc": "Apresentou informações que não permitem identificar se o recurso elaborado foi realmente aplicado/testado com o público, mesmo que tenha apresentado os resultados alcançados ou propostas de ajuste."
+            },
+            {
+              "pts": 2,
+              "desc": "Apresentou informações consistentes sobre a aplicação dos recursos com o público-alvo e os resultados alcançados para a solução do desafio ou propostas de ajuste, caso não tenha alcançado os resultados esperados."
+            }
+          ]
+        },
+        {
+          "nome": "Sobre as competências adquiridas",
+          "peso": 10,
+          "niveis": [
+            {
+              "pts": 0,
+              "desc": "Não preencheu a tabela de competências adquiridas ou a tabela está incompleta e não apresentou parágrafo relatando competências prévias e desenvolvidas no decorrer do curso."
+            },
+            {
+              "pts": 0.5,
+              "desc": "Preencheu de forma incompleta a tabela de competências ou não apresentou de forma clara as informações sobre competências prévias e desenvolvidas no parágrafo solicitado."
+            },
+            {
+              "pts": 1,
+              "desc": "Preencheu de forma completa a tabela de competências: assinalou as adquiridas na elaboração de cada recurso e indicou as ferramentas usadas. Apresentou parágrafo relatando competências prévias e desenvolvidas no decorrer do curso."
+            }
+          ]
+        },
+        {
+          "nome": "Sobre a continuidade da pesquisa e aprendizagem",
+          "peso": 10,
+          "niveis": [
+            {
+              "pts": 0,
+              "desc": "Não apresentou uma metodologia de pesquisa para dar continuidade ao seu desafio e/ou não relatou o que foi mais significativo para sua aprendizagem no curso."
+            },
+            {
+              "pts": 0.5,
+              "desc": "Apresentou uma metodologia de pesquisa para dar continuidade ao desafio, mas não é adequada ou não explicou porque a utilizaria, mesmo tendo relatado o que foi mais significativo."
+            },
+            {
+              "pts": 1,
+              "desc": "Apresentou uma metodologia de pesquisa adequada para dar continuidade ao desafio e explicou o porquê, além de relatar o que foi mais significativo para sua aprendizagem no curso."
+            }
+          ]
+        },
+        {
+          "nome": "Transparência no uso de IA",
+          "peso": 10,
+          "niveis": [
+            {
+              "pts": 0,
+              "desc": "Declara ter usado mas não descreve como."
+            },
+            {
+              "pts": 0.5,
+              "desc": "Declara ter usado, mas respondeu de forma incompleta ou superficial — faltou responder alguma das perguntas ou as respostas foram muito vagas."
+            },
+            {
+              "pts": 1,
+              "desc": "Declara NÃO ter usado, ou declara ter usado e respondeu a tudo de forma completa: quais ferramentas usou, para quê, como foi a interação e qual foi o resultado final no trabalho e aprendizado."
+            }
+          ]
+        }
       ]
     }
-  ],
-  "_meta": {
-    "somaMaxPontos": 10,
-    "notaMaxima": 10.0,
-    "notaMinima": 0.0,
-    "validado": true,
-    "fonte": "Rubrica oficial TEDPRO — IFSC Campus Continente"
-  }
+  ]
 }

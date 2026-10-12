@@ -109,4 +109,4 @@ O script `scripts/validar_rubricas.py` confere a matemática (10,00 e 0,00 nos d
 
 ## Formato JSON de referência
 
-Os arquivos em `exemplos/` mostram uma estrutura de rubrica para uma futura importação/exportação em JSON. **O app ainda não importa esses arquivos**, e o formato deles (`niveis`, `maxPontos`, `descritores`) é diferente da estrutura interna descrita acima.
+Para criar rubricas sem editar o código, use o arquivo `.json` do app: os arquivos de `exemplos/` podem ser importados com **⬆ Importar**, e **⬇ Exportar** gera arquivos no mesmo formato. Detalhes em [FORMATO_JSON.md](FORMATO_JSON.md).
