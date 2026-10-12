@@ -45,7 +45,7 @@ nota = 8.5 / 10 × 10 = 8,50
 
 ---
 
-## Modo Pesos Percentuais (`pes`)
+## Modo Pesos Percentuais (`pct`)
 
 ### Por que não usar uma fórmula global simples
 
@@ -103,47 +103,28 @@ Mesmo resultado do modo absoluto — consistência garantida.
 
 ---
 
-## Conversão automática entre modos
+## Relação entre os modos
 
-### ABS → PES (derivar pesos a partir de maxPts)
+O app **não converte** automaticamente pontos em pesos nem o contrário. Trocar o modo só muda a fórmula usada e limpa as seleções. No modo `pct` vale o campo **Peso %** de cada critério (aba ✏️ Editar).
+
+- **Peso proporcional aos pontos máximos** (como nos 4 templates): os dois modos dão exatamente a mesma nota.
+- **Pesos diferentes dos pontos máximos:** o modo `abs` ignora os pesos, e o modo `pct` ignora a diferença de escala entre os critérios (cada um vale pelo seu peso).
+
+Para derivar pesos a partir dos pontos máximos ao montar uma rubrica:
 
 ```
 peso_i = (maxPts_i / Σ maxPts_j) × 100
 ```
 
-Garante: `Σ peso_i = 100%` e pesos proporcionais à importância original.
-
-**Ajuste de arredondamento:** O último critério absorve o resto  
-para garantir soma exata de 100%:
-```javascript
-if (i === crits.length - 1) {
-  peso = 100 - acumulado;   // absorve erro de arredondamento
-} else {
-  peso = Math.round((maxPts / somaMaxPts) * 1000) / 10;
-}
-```
-
-### PES → ABS (derivar maxPts a partir de pesos)
-
-```
-maxPts_i = ptMax_global × (peso_i / maxPeso)
-```
-
-Arredondado para múltiplos de 0.5 (escala comum em rubricas):
-```
-maxPts_i = max(0.5, round(raw × 2) / 2)
-```
-
-Onde `ptMax_global` = maior `pts` entre todos os níveis,  
-e `maxPeso` = maior peso entre todos os critérios.
+Ajuste os valores para somarem 100 (o último critério absorve o arredondamento).
 
 ---
 
 ## Validação das 4 rubricas
 
-Todos os resultados validados matematicamente (ver `scripts/validar.py`):
+Todos os resultados validados matematicamente (ver `scripts/validar_rubricas.py`):
 
-| Rubrica | ABS máx | ABS mín | PES máx | PES mín |
+| Rubrica | Pontos máx | Pontos mín | Pesos máx | Pesos mín |
 |---|---|---|---|---|
 | P2 — Recurso Educacional | **10,00** | **0,00** | **10,00** | **0,00** |
 | P4 — Portfólio | **10,00** | **0,00** | **10,00** | **0,00** |
@@ -154,36 +135,40 @@ Todos os resultados validados matematicamente (ver `scripts/validar.py`):
 
 ## Implementação JavaScript
 
+Trecho de `index.html` (resumido). A nota só existe quando **todos** os critérios foram marcados:
+
 ```javascript
-function calcNota() {
-  const nSel = Object.keys(sels).length;
-  let nota = null, soma = 0;
+function calcNota(r, sel) {
+  if (!r || !r.criterios || !r.criterios.length) return null;
+  if (!Object.keys(sel).length) return null;
+  const modo = (r.id === rubrActual) ? modoAtual : (r.modo || 'abs');
 
-  if (MODE === 'abs') {
-    const smx = R.crits.reduce((s, c) => s + (c.maxPts || 0), 0);
-    R.crits.forEach(c => {
-      const n = sels[c.k] ? R.nivs.find(x => x.k === sels[c.k]) : null;
-      if (n) soma += n.pts;
-    });
-    if (nSel > 0 && smx > 0) nota = (soma / smx) * 10;
-
-  } else {
-    const somaPesos = R.crits.reduce((s, c) => s + (c.peso || 0), 0);
-    if (somaPesos > 0) {
-      let somaPond = 0;
-      R.crits.forEach(c => {
-        const n = sels[c.k] ? R.nivs.find(x => x.k === sels[c.k]) : null;
-        const maxC = c.maxPts || 0;
-        const pts = n ? n.pts : null;
-        if (pts !== null && maxC > 0)
-          somaPond += (pts / maxC) * (c.peso / somaPesos);
-      });
-      if (nSel > 0) nota = somaPond * 10;
+  if (modo === 'abs') {
+    let obt = 0, maxT = 0;
+    for (const c of r.criterios) {
+      maxT += Math.max(...c.niveis.map(n => n.pts));
+      if (sel[c.id] !== undefined) obt += sel[c.id]; else return null;
     }
+    return maxT === 0 ? null : Math.min(10, (obt / maxT) * 10);
   }
 
-  // Clamp: evita 10.0000001 por floating point
-  if (nota !== null) nota = Math.min(10, Math.max(0, nota));
-  return nota;
+  let pesoT = 0, soma = 0;
+  for (const c of r.criterios) {
+    const mx = Math.max(...c.niveis.map(n => n.pts));
+    if (mx === 0) continue;                  // critério sem pontuação possível
+    pesoT += (c.peso || 1);
+    if (sel[c.id] !== undefined) soma += (sel[c.id] / mx) * (c.peso || 1); else return null;
+  }
+  return pesoT === 0 ? null : Math.min(10, (soma / pesoT) * 10);
 }
 ```
+
+O `Math.min(10, …)` evita resultados como 10,0000001 por ponto flutuante.
+
+### Faixas exibidas na aba Aplicar
+
+| Nota | Rótulo |
+|---|---|
+| ≥ 7 | ✅ Aprovado |
+| ≥ 5 e < 7 | ⚠️ Recuperação |
+| < 5 | ❌ Reprovado |
