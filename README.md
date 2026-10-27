@@ -23,6 +23,7 @@ O **Gerador de Rubricas** é uma Progressive Web App (PWA) que permite a profess
   - **Pesos percentuais** — ponderação por critério (ideal para critérios de importância variável)
 - **Imprimir / salvar em PDF** a rubrica completa
 - **Exportar e importar rubricas em JSON** (backup e troca entre computadores ou colegas, sem dados de alunos)
+- **Exportar para o Moodle** em CSV, com os pesos convertidos em pontos e a soma igual à nota máxima da tarefa
 - **Garantia matemática**: máximo sempre = 10,00 · mínimo sempre = 0,00
 - **Instalar como app** no Android, iOS e desktop (sem loja de aplicativos)
 - **Funcionar offline** após a primeira visita
@@ -158,6 +159,7 @@ rubricas/
 ├── docs/
 │   ├── ARQUITETURA.md  ← Como o código está organizado
 │   ├── CONFIGURAR_IA.md ← Chave, variáveis do Cloudflare e solução de problemas da IA
+│   ├── EXPORTAR_MOODLE.md ← CSV para o Moodle: conversão em pontos, plugins e regras
 │   ├── FORMATO_JSON.md ← Exportar/importar rubricas: uso, formato do arquivo e limites
 │   ├── FORMULAS.md     ← Matemática das fórmulas de nota
 │   └── ADICIONAR_RUBRICA.md ← Como adicionar novos templates
@@ -165,7 +167,8 @@ rubricas/
 │   ├── rubrica-exemplo-simples.json   ← Seminário com 3 critérios (pronto para importar)
 │   └── rubrica-p4-completa.json       ← Rubrica P4 completa (pronta para importar)
 ├── scripts/
-│   └── validar_rubricas.py ← Confere a matemática: máx = 10,00 e mín = 0,00 nos dois modos
+│   ├── validar_rubricas.py ← Confere a matemática: máx = 10,00 e mín = 0,00 nos dois modos
+│   └── validar_csv_moodle.php ← Confere um CSV com as regras do importador do Moodle
 └── LICENSE             ← MIT
 ```
 
@@ -322,6 +325,7 @@ server {
 - [x] Chave de API somente no servidor (OpenAI ou Anthropic) e código de acesso
 - [ ] Salvar **avaliações por aluno** (histórico, nota por critério) e exportar em CSV
 - [x] Importação/exportação de rubricas em JSON
+- [x] Exportação da rubrica para o Moodle (CSV)
 - [ ] Exportação em DOCX (relatório de avaliação)
 - [ ] Mensagem de erro neutra quando nenhuma chave está configurada
 - [ ] Backend Python + SQLite (salvar no servidor, multiusuário)

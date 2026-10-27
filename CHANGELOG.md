@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.0] — 2026-10-27
+
+### Adicionado
+- **Exportar para o Moodle (CSV)**: botão **🎓 Moodle** no card e dentro da rubrica. Converte pontos absolutos ou pesos % em pontos por nível, com a soma dos níveis máximos igual à nota máxima da tarefa, para a nota no Moodle coincidir com a do Gerador. Formato dos plugins `local_customgradingform_renderer` + `block_importrubric`.
+- Modal com a tabela de pontos, avisos (critério sem nível 0, critério sem pontos) e bloqueio quando o importador recusaria o arquivo (níveis com pontos iguais, nota máxima inválida).
+- `docs/EXPORTAR_MOODLE.md` e `scripts/validar_csv_moodle.php` (reproduz a validação do importador).
+
+### Alterado
+- Cache do Service Worker `rubricas-inovalab-v7`.
+
 ## [1.2.0] — 2026-10-11
 
 ### Adicionado
