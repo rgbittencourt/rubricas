@@ -15,7 +15,7 @@ Por isso a exportação converte a rubrica em pontos, nos dois modos do app:
 | Pontos absolutos | `pts × nota máxima ÷ soma dos pontos máximos` |
 | Pesos % | `pts ÷ máximo do critério × peso ÷ soma dos pesos × nota máxima` |
 
-É a mesma conta de `calcNota()`, então a soma dos níveis máximos fica igual à **nota máxima da tarefa** e a nota no Moodle coincide com a do Gerador. Os pontos são arredondados em centésimos e a sobra do arredondamento vai para o nível máximo do critério que vale mais. Quando a divisão não é exata (nota máxima 7,5, por exemplo), a nota pode diferir em poucos centésimos.
+É a mesma conta de `calcNota()`, então a soma dos níveis máximos fica igual à **nota máxima da tarefa** e a nota no Moodle coincide com a do Gerador. Os pontos são arredondados em centésimos. O máximo de cada critério é distribuído pelo método dos maiores restos, então a soma fica exatamente igual à nota máxima e nenhum nível passa do máximo do seu critério. Quando a divisão não é exata (nota máxima 7,5, por exemplo), a nota pode diferir em poucos centésimos.
 
 Exemplo, template P2 com nota máxima 100: os três critérios de 3 pontos ficam com níveis 0 · 20 · 30 e os dois de 0,5 ponto ficam com 0 · 5.
 
@@ -67,6 +67,7 @@ O importador rejeita qualquer linha com aspas, ponto e vírgula ou mais de três
 |---|---|
 | `,` e `;` | `‚` (vírgula baixa, parecida com a vírgula) |
 | `"` | `“` `”` |
+| `<` `>` | `‹` `›` (o importador apagaria o que parece tag HTML) |
 | quebra de linha | espaço |
 
 ---
@@ -81,6 +82,7 @@ O importador rejeita qualquer linha com aspas, ponto e vírgula ou mais de três
 | Critério sem nível de 0 ponto | Aviso: inclua um nível 0 para a nota coincidir com a do Gerador |
 | Nível sem descrição | Recebe `Nível N` |
 | Nota máxima vazia, zero ou acima de 1000 | Bloqueia |
+| Nota máxima pequena demais para o número de critérios (níveis empatariam após o arredondamento) | Bloqueia e sugere uma nota maior, como 100 |
 
 `scripts/validar_csv_moodle.php` reproduz a validação do plugin (versão 1.0.x) fora do Moodle:
 

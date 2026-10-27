@@ -1266,6 +1266,7 @@ let moodleRubricaId = null;
 function textoMoodle(s) {
   let abre = true;
   return String(s||'').replace(/[\r\n\t]+/g,' ')
+    .replace(/</g,'\u2039').replace(/>/g,'\u203A')   // ‹ › : o importador apaga o que parece tag HTML
     .replace(/[,;]/g,'\u201A')                       // vírgula baixa (‚): parece vírgula, não separa colunas
     .replace(/"/g,()=>{ const c=abre?'\u201C':'\u201D'; abre=!abre; return c; })
     .replace(/ {2,}/g,' ').trim();
@@ -1289,25 +1290,31 @@ function rubricaParaMoodle(r, notaMax) {
   // Mesma conta da nota do app (calcNota): pontos do Moodle = parcela da nota máxima.
   const maxT = validos.reduce((a,v)=>a+v.mx,0);
   const pesoT = validos.reduce((a,v)=>a+(Number(v.c.peso)||1),0);
+  // Máximo exato de cada critério, distribuído em centésimos pelo método dos maiores restos:
+  // a soma dos máximos fica exatamente igual à nota máxima e nenhum nível passa do máximo.
+  const exatos = validos.map(v=> modo==='abs' ? v.mx/maxT*notaMax : (Number(v.c.peso)||1)/pesoT*notaMax);
+  const totalCent = Math.round(notaMax*100);
+  const cent = exatos.map(x=>Math.floor(x*100+1e-9));
+  let falta = totalCent - cent.reduce((a,b)=>a+b,0);
+  exatos.map((x,i)=>({i,resto:x*100-cent[i]})).sort((a,b)=>b.resto-a.resto||a.i-b.i)
+    .forEach(o=>{ if (falta>0) { cent[o.i]++; falta--; } });
   const nomes = new Set();
-  for (const v of validos) {
-    const fator = modo==='abs' ? notaMax/maxT : (Number(v.c.peso)||1)/pesoT*notaMax/v.mx;
+  validos.forEach((v,idx)=>{
+    const maxC = cent[idx]/100;
     let nome = textoMoodle(v.c.nome) || `Critério ${v.i+1}`, base=nome, k=2;
     while (nomes.has(nome.toLowerCase())) nome = `${base} (${k++})`;
     nomes.add(nome.toLowerCase());
-    criterios.push({ nome, niveis: v.niveis.map((n,j)=>({ pts:r2(n.pts*fator), desc:textoMoodle(n.desc)||`Nível ${j+1}` })) });
-  }
-  // Arredondamento: a sobra (centésimos) vai para o nível máximo do critério que vale mais.
-  const soma = criterios.reduce((a,c)=>a+c.niveis[c.niveis.length-1].pts,0);
-  const dif = r2(notaMax - soma);
-  if (dif) {
-    const alvo = criterios.reduce((a,c)=>c.niveis[c.niveis.length-1].pts>a.niveis[a.niveis.length-1].pts?c:a);
-    const topo = alvo.niveis[alvo.niveis.length-1]; topo.pts = r2(topo.pts + dif);
-  }
-  for (const c of criterios) {
+    criterios.push({ nome, niveis: v.niveis.map((n,j)=>({ pts: j===v.niveis.length-1 ? maxC : r2(n.pts/v.mx*maxC), desc:textoMoodle(n.desc)||`Nível ${j+1}` })) });
+  });
+  let arredondou = false;
+  criterios.forEach((c,idx)=>{
     const pts = c.niveis.map(n=>n.pts);
-    if (new Set(pts).size < pts.length) erros.push(`"${c.nome}" tem níveis com a mesma pontuação (${pts.join(' · ')}). O Moodle exige pontos diferentes em cada nível: ajuste na aba Editar.`);
-  }
+    if (new Set(pts).size === pts.length) return;
+    const orig = validos[idx].niveis.map(n=>n.pts);
+    if (new Set(orig).size < orig.length) erros.push(`"${c.nome}" tem níveis com a mesma pontuação. O Moodle exige pontos diferentes em cada nível: ajuste na aba Editar.`);
+    else arredondou = true;
+  });
+  if (arredondou) erros.push('A nota máxima é pequena para tantos critérios: arredondados em centésimos, alguns níveis ficariam com os mesmos pontos. Use uma nota máxima maior (100, por exemplo).');
   if (criterios.some(c=>c.niveis[0].pts>0)) avisos.push('Há critério sem nível de 0 ponto. Inclua um nível 0 em cada critério para a nota do Moodle coincidir com a do Gerador.');
   return {erros,avisos,criterios};
 }
