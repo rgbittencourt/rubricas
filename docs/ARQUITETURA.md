@@ -91,12 +91,17 @@ Os templates (`TEMPLATES`) usam exatamente esta estrutura. Ver [ADICIONAR_RUBRIC
 |---|---|
 | `inovalab-rubricas-v5` | `{ db: [...rubricas], nextId }` |
 | `inovalab-rubricas-acesso` | Código de acesso à IA digitado pelo professor |
+| `inovalab-rubricas-moodle-nota` | Última nota máxima usada na exportação para o Moodle |
 
 Toda leitura e escrita é protegida com `try/catch`: se o navegador bloquear o armazenamento, o app continua funcionando sem salvar. `dbSave()` devolve `true`/`false`, e a importação usa isso para não aceitar rubricas que não puderam ser guardadas.
 
 ### Exportar / importar (JSON)
 
 `exportarRubricas()` grava `{ formato, versao, exportadoEm, rubricas }` (só o modelo: sem `id`, aluno, turma e data) e baixa o arquivo. `importarArquivos()` lê os arquivos, valida e **copia campo a campo** cada rubrica (`normalizarRubrica`), atribui novos ids e acrescenta ao `DB` como cópias. Formato, limites e segurança: [FORMATO_JSON.md](FORMATO_JSON.md).
+
+### Exportar para o Moodle (CSV)
+
+`rubricaParaMoodle(r, notaMax)` converte a rubrica em pontos por nível com a mesma conta de `calcNota()` (a soma dos níveis máximos é `notaMax`), arredonda em centésimos, limpa os textos para o importador (`textoMoodle`) e devolve `{ erros, avisos, criterios }`. `csvMoodle()` monta o arquivo e `baixarMoodle()` baixa; o modal (`abrirModalMoodle`, `renderModalMoodle`) mostra a tabela de pontos e bloqueia o download quando há erro. A nota máxima digitada fica em `inovalab-rubricas-moodle-nota`. Detalhes: [EXPORTAR_MOODLE.md](EXPORTAR_MOODLE.md).
 
 > Versões antigas guardavam a chave da Anthropic em `anthropic-api-key`. O app apaga essa entrada ao carregar.
 

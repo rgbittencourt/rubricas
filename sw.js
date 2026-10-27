@@ -2,7 +2,7 @@
 // Página (HTML): rede primeiro, cache como reserva offline → atualizações chegam sem trocar a versão.
 // Demais arquivos estáticos: cache primeiro, atualizado em segundo plano.
 // /api/*: nunca passa pelo cache.
-const CACHE = 'rubricas-inovalab-v6';
+const CACHE = 'rubricas-inovalab-v7';
 const ASSETS = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', e => {
